@@ -1,0 +1,6 @@
+# IntelliJ IDE stuff
+.idea/
+
+# Python stuff
+__pycache__/
+venv/

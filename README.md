@@ -1,8 +1,10 @@
 # Wrath & Glory XP Optimizer
 
+Evert wondered if it is better to choose *Agility* over separate points into *Ballistic Skill* & *Stealth*? Ever thought that your current character has only *Intelligence* but no points left for anything else?
+
 This repo contains a Mixed-Integer Non-Linear Programming (MI-NLP) optimization solution to spending the optimal amount of XP on selected attributes, skills & derived properties in the role-playing game [Wrath & Glory by Cubicle 7](https://www.cubicle7games.com/our-games/wrath-glory/).
 
-For simple character management, I recommend using the [Character Forge @ Doctors of Doom](https://www.doctors-of-doom.com/forge/my-characters). The XP optimizer can then be used on a created character to minimized the spent XP.
+For simple character management, I recommend using the [Character Forge @ Doctors of Doom](https://www.doctors-of-doom.com/forge/my-characters). The XP optimizer can then be used on a created character to minimized the spent XP. Just pass in your desired target values (e.g. total value for *Cunning*, *Tech* & *Deception* and your desired *Strength*) and the optimizer will figure out the best distribution to use with minimal XP.
 
 If you encounter any errors/wrong numbers please post your input & the expected values so I can debug them. If you have any recommendations, feel free to leave some comments.
 

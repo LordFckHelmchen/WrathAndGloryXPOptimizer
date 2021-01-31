@@ -1,4 +1,12 @@
-# Optimizing XP Costs for skills
+# Wrath & Glory XP Optimizer
+
+This repo contains a Mixed-Integer Non-Linear Programming (MI-NLP) optimization solution to spending the optimal amount of XP on selected attributes, skills & derived properties in the role-playing game [Wrath & Glory by Cubicle 7](https://www.cubicle7games.com/our-games/wrath-glory/).
+
+For simple character management, I recommend using the [Character Forge @ Doctors of Doom](https://www.doctors-of-doom.com/forge/my-characters). The XP optimizer can then be used on a created character to minimized the spent XP.
+
+If you encounter any errors/wrong numbers please post your input & the expected values so I can debug them. If you have any recommendations, feel free to leave some comments.
+
+The optimizer is written for the core ruleset v2.1. It does not take into account any species/archetype based bonuses/prerequisites - but these should be fine given that they use the same XP cost tables.
 
 ## Installation
 

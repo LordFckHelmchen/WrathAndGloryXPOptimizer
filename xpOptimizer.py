@@ -31,13 +31,13 @@ class StringEnum(Enum):
 
 
 class Attribute(StringEnum):
-    Agility = 'A'
-    Fellowship = 'Fel'
-    Initiative = 'I'
-    Intelligence = 'Int'
     Strength = 'S'
     Toughness = 'T'
+    Agility = 'A'
+    Initiative = 'I'
     Willpower = 'Wil'
+    Intellect = 'Int'
+    Fellowship = 'Fel'
 
 
 class Skill(StringEnum):
@@ -62,14 +62,14 @@ class Skill(StringEnum):
 
 
 class DerivedProperty(StringEnum):
-    Conviction = 'Conviction'
     Defence = 'Defence'
-    Determination = 'Determination'
-    Influence = 'Influence'
-    MaxShock = 'MaxShock'
-    MaxWounds = 'MaxWounds'
     Resilience = 'Resilience'
+    Determination = 'Determination'
+    MaxWounds = 'MaxWounds'
+    MaxShock = 'MaxShock'
+    Conviction = 'Conviction'
     Resolve = 'Resolve'
+    Influence = 'Influence'
 
 
 PropertyEnum = Union[Attribute, Skill, DerivedProperty]
@@ -264,22 +264,22 @@ class AttributeSkillOptimizer:
                 f"'tier' must be an integer within {list(AttributeSkillOptimizer.TIER_RANGE.values())}, was {tier}")
         self.tier: int = tier
         self.skills = OrderedDict({Skill.Athletics: ValueProperty(Attribute.Strength, 0),
-                                   Skill.Awareness: ValueProperty(Attribute.Intelligence, 0),
+                                   Skill.Awareness: ValueProperty(Attribute.Intellect, 0),
                                    Skill.BallisticSkill: ValueProperty(Attribute.Agility, 0),
                                    Skill.Cunning: ValueProperty(Attribute.Fellowship, 0),
                                    Skill.Deception: ValueProperty(Attribute.Fellowship, 0),
                                    Skill.Insight: ValueProperty(Attribute.Fellowship, 0),
                                    Skill.Intimidation: ValueProperty(Attribute.Willpower, 0),
-                                   Skill.Investigation: ValueProperty(Attribute.Intelligence, 0),
+                                   Skill.Investigation: ValueProperty(Attribute.Intellect, 0),
                                    Skill.Leadership: ValueProperty(Attribute.Willpower, 0),
-                                   Skill.Medicae: ValueProperty(Attribute.Intelligence, 0),
+                                   Skill.Medicae: ValueProperty(Attribute.Intellect, 0),
                                    Skill.Persuasion: ValueProperty(Attribute.Fellowship, 0),
                                    Skill.Pilot: ValueProperty(Attribute.Agility, 0),
                                    Skill.PsychicMastery: ValueProperty(Attribute.Willpower, 0),
-                                   Skill.Scholar: ValueProperty(Attribute.Intelligence, 0),
+                                   Skill.Scholar: ValueProperty(Attribute.Intellect, 0),
                                    Skill.Stealth: ValueProperty(Attribute.Agility, 0),
                                    Skill.Survival: ValueProperty(Attribute.Willpower, 0),
-                                   Skill.Tech: ValueProperty(Attribute.Intelligence, 0),
+                                   Skill.Tech: ValueProperty(Attribute.Intellect, 0),
                                    Skill.WeaponSkill: ValueProperty(Attribute.Initiative, 0)})
         self.derived_properties = OrderedDict({DerivedProperty.Conviction: ValueProperty(Attribute.Willpower, 0),
                                                DerivedProperty.Defence: ValueProperty(Attribute.Initiative, -1),
@@ -303,6 +303,9 @@ class AttributeSkillOptimizer:
         raise KeyError(f"Invalid value name: {name}")
 
     def optimize_selection(self, target_values: dict) -> AttributeSkillOptimizerResults:
+        '''
+        This was done with the help of https://stackoverflow.com/questions/65863807/constraining-a-mixed-integer-non-linear-optimization-problem-by-l0-norm-number-o
+        '''
         target_values = {AttributeSkillOptimizer.name_to_enum(key): target_values[key] for key in target_values}
 
         with GekkoContext(remote=False) as solver:

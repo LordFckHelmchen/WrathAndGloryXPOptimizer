@@ -1,6 +1,6 @@
 # Wrath & Glory XP Optimizer
 
-Evert wondered if it is better to choose *Agility* over separate points into *Ballistic Skill* & *Stealth*? Ever thought that your current character has only *Intelligence* but no points left for anything else?
+Evert wondered if it is better to choose *Agility* over separate points into *Ballistic Skill* & *Stealth*? Ever thought that your current character has only *Intellect* but no points left for anything else?
 
 This repo contains a Mixed-Integer Non-Linear Programming (MI-NLP) optimization solution to spending the optimal amount of XP on selected attributes, skills & derived properties in the role-playing game [Wrath & Glory by Cubicle 7](https://www.cubicle7games.com/our-games/wrath-glory/).
 
@@ -46,15 +46,15 @@ which will output the following markdown table:
 1
 
 ## Attributes
-Name         | Total  | Target | Missed
------------- | ------ | ------ | ------
-Agility      | 1      | -      | -     
-Fellowship   | 1      | -      | -     
-Initiative   | 1      | -      | -     
-Intelligence | 1      | -      | -     
-Strength     | 3      | 3      | NO    
-Toughness    | 3      | -      | -     
-Willpower    | 1      | -      | -     
+Name       | Total  | Target | Missed
+---------- | ------ | ------ | ------
+Agility    | 1      | -      | -     
+Fellowship | 1      | -      | -     
+Initiative | 1      | -      | -     
+Intellect  | 1      | -      | -     
+Strength   | 3      | 3      | NO    
+Toughness  | 3      | -      | -     
+Willpower  | 1      | -      | -     
 
 ## Skills
 Name           | Rating | Total  | Target | Missed
@@ -114,7 +114,7 @@ which will create:
       "Agility": 1,
       "Fellowship": 1,
       "Initiative": 1,
-      "Intelligence": 1,
+      "Intellect": 1,
       "Strength": 3,
       "Toughness": 3,
       "Willpower": 1

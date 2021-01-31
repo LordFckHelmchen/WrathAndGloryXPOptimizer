@@ -192,7 +192,17 @@ which will create:
 
 ### File-based input via command-line
 
-If you have several properties you want to set, or simple want to keep single file for your character, use the json-file with the `--file` command-line argument. The json file is a simple flat json with at least the *tier* field.  For example if you want to optimize your *tier* 3 character with *Agility* 5, *BallisticSkill* 11, *Cunning* 7, *Defence* 4 (note the British spelling!) and *Max Wounds* 10, create a file (e.g. `TestChar.json`) with the following content:
+If you have several properties you want to set, or simple want to keep single file for your character, use the json-file with the `--file` command-line argument. The json file is a simple flat json with at least the *tier* field.  For example if you want to optimize your *tier* 3 character with
+
+- *Agility* 5
+- *BallisticSkill* 11
+- *Cunning* 7
+- *Deception* 8
+- *Stealth* 12
+- *Defence* 6 (note the British spelling!)
+- *Max Wounds* 10
+
+then create a file (e.g. `TestChar.json`) with the following content:
 
 ```JSON
 {

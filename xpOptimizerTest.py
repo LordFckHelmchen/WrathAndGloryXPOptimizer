@@ -5,6 +5,13 @@ from typing import Callable, List, Any, Dict
 from xpOptimizer import Attribute, Skill, DerivedProperty, StringEnum, AttributeSkillOptimizer, PropertyResults, XPCost
 
 
+class IntendedSelection:
+    def __init__(self, tier: int, target_values: Dict[str, int], expected_xp_costs: XPCost):
+        self.tier: int = tier
+        self.target_values: Dict[str, int] = target_values
+        self.expected_xp_cost: XPCost = expected_xp_costs
+
+
 class TestPropertyResults(unittest.TestCase):
     def test_missed_getter_expect_name_of_missed_value_if_total_is_smaller_than_target(self):
         value_name = 'val2'
@@ -75,15 +82,15 @@ class TestStringEnum(unittest.TestCase):
 
 
 class TestAttributeSkillOptimizer(unittest.TestCase):
-    def run_positive_tests_on_optimize_selection(self, target_values: Dict[str, int], expected_xp_cost: XPCost):
-        optimizer = AttributeSkillOptimizer(tier=1)
-        result = optimizer.optimize_selection(target_values=target_values)
+    def run_positive_tests_on_optimize_selection(self, selection: IntendedSelection):
+        optimizer = AttributeSkillOptimizer(tier=selection.tier)
+        result = optimizer.optimize_selection(target_values=selection.target_values)
 
         self.maxDiff = None
         for property_name in ['Attributes', 'Skills', 'DerivedProperties']:
             missed_targets = result.__getattribute__(property_name).Missed
-            self.assertFalse(any(missed_targets), msg=f"Missed values were not empty:\n{repr(missed_targets)}")
-        self.assertEqual(expected_xp_cost, result.XPCost)
+            self.assertFalse(any(missed_targets), msg=f"Missed values were not empty:\n{repr(missed_targets)}\nResult{str(result)}")
+        self.assertEqual(selection.expected_xp_cost, result.XPCost, msg=f"\nResult{str(result)}")
 
     def test_name_to_enum_with_members_expect_string_enum(self):
         for name in ['I', 'PsychicMastery', 'Conviction']:
@@ -94,15 +101,16 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
             with self.assertRaises(KeyError):
                 AttributeSkillOptimizer.name_to_enum(name)
 
-    def test_optimize_selection_for_skills_expect_no_missed_targets_and_known_xp_cost(self):
-        target_values = {'BallisticSkill': 7, 'Stealth': 10, 'Athletics': 5, 'Awareness': 3, 'MaxWounds': 7}
-        expected_xp_costs = XPCost(attribute_costs=84, skill_costs=46)
-        self.run_positive_tests_on_optimize_selection(target_values, expected_xp_costs)
-
-    def test_optimize_selection_for_skills_with_attribute_constraint_expect_no_missed_targets_and_known_xp_cost(self):
-        target_values = {'S': 5, 'Stealth': 10, 'Athletics': 5, 'Awareness': 3, 'Cunning': 2}
-        expected_xp_costs = XPCost(attribute_costs=45, skill_costs=72)
-        self.run_positive_tests_on_optimize_selection(target_values, expected_xp_costs)
+    def test_optimize_selection_expect_no_missed_targets_and_expected_xp_cost(self):
+        selections = [IntendedSelection(tier=2,
+                                        target_values={"Intellect": 5, "Investigation": 10, "Medicae": 10, "Scholar": 15, "Tech": 10, "MaxWounds": 7},
+                                        expected_xp_costs=XPCost(attribute_costs=120, skill_costs=80)),
+                      IntendedSelection(tier=1,
+                                        target_values={"Athletics": 5, "Awareness": 3, "BallisticSkill": 7, "Cunning": 2, "Stealth": 10},
+                                        expected_xp_costs=XPCost(attribute_costs=45, skill_costs=50))]
+        for selection_id, selection in enumerate(selections):
+            with self.subTest(i=selection_id):
+                self.run_positive_tests_on_optimize_selection(selection)
 
     def test_optimize_selection_with_no_target_values_expect_0_cost_attributes_at_1_and_skills_at_0(self):
         target_values = dict()

@@ -78,7 +78,6 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
     def run_positive_tests_on_optimize_selection(self, target_values: Dict[str, int], expected_xp_cost: XPCost):
         optimizer = AttributeSkillOptimizer(tier=1)
         result = optimizer.optimize_selection(target_values=target_values)
-        print(result)
 
         self.maxDiff = None
         for property_name in ['Attributes', 'Skills', 'DerivedProperties']:

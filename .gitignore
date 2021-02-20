@@ -6,4 +6,4 @@ __pycache__/
 venv/
 
 # Other
-XPOptimizerPlots.ods
+XPOptimizer*.ods

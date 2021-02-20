@@ -1,3 +1,5 @@
+__version__ = 1.3
+
 import argparse
 import json
 import os
@@ -23,6 +25,7 @@ class StringEnum(Enum):
     @classmethod
     def from_name_or_value(cls, name_or_value: str):
         if cls.is_value(name_or_value):
+            # noinspection PyArgumentList
             return cls(name_or_value)
         if cls.is_name(name_or_value):
             return getattr(cls, name_or_value)
@@ -130,8 +133,8 @@ class PropertyResults:
 
     @property
     def Missed(self) -> List[str]:
-        return [target_name for target_name, target_value in self.Target.items() if
-                target_name in self.Total and self.Total[target_name] < target_value]
+        return [target for target, target_value in self.Target.items() if
+                target in self.Total and self.Total[target] < target_value]
 
 
 class SkillResults(PropertyResults):
@@ -156,8 +159,8 @@ class XPCost:
         self.Attributes: int = attribute_costs
         self.Skills: int = skill_costs
         if total_costs is not None and self.Attributes + self.Skills != total_costs:
-            raise IOError(
-                f"Total XP cost didn't sum up from Attribute & Skill costs: {self.Attributes} != {self.Skills} + {total_costs}")
+            raise IOError(f"Total XP cost didn't sum up from Attribute & Skill costs: {self.Attributes} != "
+                          f"{self.Skills} + {total_costs}")
 
     def __eq__(self, other):
         return self.Attributes == other.Attributes and self.Skills == other.Skills
@@ -241,7 +244,7 @@ class GekkoContext:
 
 
 class AttributeSkillOptimizer:
-    __version__ = 2.1  # W & G Rules Version
+    WRATH_AND_GLORY_CORE_RULES_VERSION = 2.1
 
     DEFAULT_SOLVER_OPTIONS = ('minlp_maximum_iterations 500',
                               'minlp_max_iter_with_int_sol 10',  # minlp iterations with integer solution
@@ -302,11 +305,13 @@ class AttributeSkillOptimizer:
                 return name_as_enum
         raise KeyError(f"Invalid value name: {name}")
 
-    def optimize_selection(self, target_values: dict) -> AttributeSkillOptimizerResults:
-        '''
-        This was done with the help of https://stackoverflow.com/questions/65863807/constraining-a-mixed-integer-non-linear-optimization-problem-by-l0-norm-number-o
-        '''
-        target_values = {AttributeSkillOptimizer.name_to_enum(key): target_values[key] for key in target_values}
+    def optimize_selection(self, target_values: Dict[str, int]) -> AttributeSkillOptimizerResults:
+        """
+        Note
+        ----
+        This was done with the help of John Hedengren from Gekko (see https://stackoverflow.com/questions/65863807)
+        """
+        target_values = {AttributeSkillOptimizer.name_to_enum(key): value for key, value in target_values.items()}
 
         with GekkoContext(remote=False) as solver:
             # Define variables.
@@ -408,22 +413,29 @@ class AttributeSkillOptimizer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description="XP Optimizer for Wrath & Glory. Target values can be given for each attribute and skill and for most derived properties (e.g. conviction, max. wounds, ...). The function will try to optimize the spent XP, e.g. optimally increase attributes & skills with a min. amount of xp. ",
+        description=f"XP Optimizer for Wrath & Glory v{AttributeSkillOptimizer.WRATH_AND_GLORY_CORE_RULES_VERSION}. "
+                    f"Target values can be given for each attribute and skill and for most derived properties (e.g. "
+                    f"conviction, max. wounds, ...). The function will try to optimize the spent XP, e.g. optimally "
+                    f"increase attributes & skills with a min. amount of xp.",
         add_help=True)
     parser.add_argument('-f', '--file',
                         type=str,
-                        help='A json file with the name-value pairs for the target values (see other input arguments for names & value ranges). The file MUST contain the tier value. If the file is specified, duplicate command line parameters take precedence.')
+                        help='A json file with the name-value pairs for the target values (see other input arguments '
+                             'for names & value ranges). The file MUST contain the tier value. If the file is '
+                             'specified, duplicate command line parameters take precedence.')
     parser.add_argument('-j', '--return_json',
                         action='store_false',
-                        help='If enabled, prints the result a json instead of markdown.')
+                        help='If enabled, prints the result as JSON string instead of as Markdown table (default).')
     parser.add_argument('-v', '--verbose',
-                        action='store_false',
+                        action='store_true',
                         help='If enabled, shows diagnostic output of the solver.')
     parser.add_argument('--Tier',
                         type=int,
                         choices=range(AttributeSkillOptimizer.TIER_RANGE['lb'],
                                       AttributeSkillOptimizer.TIER_RANGE['ub'] + 1),
                         help='The tier of the character.')
+
+    # Add optional inputs for each attribute, skill & derived property.
     for target_enum in [Attribute, Skill]:
         value_bounds = getattr(AttributeSkillOptimizer, str(target_enum.__name__).upper() + '_RANGE')
         for target_name in target_enum:

@@ -247,7 +247,7 @@ class AttributeSkillOptimizer:
     WRATH_AND_GLORY_CORE_RULES_VERSION = 2.1
 
     DEFAULT_SOLVER_OPTIONS = ('minlp_maximum_iterations 500',
-                              'minlp_max_iter_with_int_sol 10',  # minlp iterations with integer solution
+                              'minlp_max_iter_with_int_sol 50',  # minlp iterations with integer solution
                               'minlp_as_nlp 0',  # treat minlp as nlp
                               'nlp_maximum_iterations 50',  # nlp sub-problem max iterations
                               'minlp_branch_method 1',  # 1 = depth first, 2 = breadth first
@@ -314,36 +314,36 @@ class AttributeSkillOptimizer:
         target_values = {AttributeSkillOptimizer.name_to_enum(key): value for key, value in target_values.items()}
 
         with GekkoContext(remote=False) as solver:
-            # Define variables.
-            all_ratings = OrderedDict()
-            attribute_ratings = solver.Array(solver.Var,
-                                             (len(Attribute)),
-                                             value=AttributeSkillOptimizer.ATTRIBUTE_RANGE['lb'],
-                                             **AttributeSkillOptimizer.ATTRIBUTE_RANGE,
-                                             integer=True)
-            for i, attribute in enumerate(Attribute):
-                all_ratings[attribute] = attribute_ratings[i]
-
-            skill_ratings = solver.Array(solver.Var,
-                                         (len(self.skills)),
-                                         value=AttributeSkillOptimizer.SKILL_RANGE['lb'],
-                                         **AttributeSkillOptimizer.SKILL_RANGE,
-                                         integer=True)
-            for i, skill in enumerate(self.skills):
+            # Define variables with optimized initial values.
+            attribute_ratings = [solver.Var(name=attribute.name,
+                                            value=target_values.get(attribute,
+                                                                    AttributeSkillOptimizer.ATTRIBUTE_RANGE['lb']),
+                                            lb=AttributeSkillOptimizer.ATTRIBUTE_RANGE['lb'],
+                                            ub=AttributeSkillOptimizer.ATTRIBUTE_RANGE['ub'],
+                                            integer=True) for attribute in Attribute]
+            skill_ratings = [solver.Var(name=skill.name,
+                                        value=AttributeSkillOptimizer.SKILL_RANGE['lb'],
+                                        lb=AttributeSkillOptimizer.SKILL_RANGE['lb'],
+                                        ub=AttributeSkillOptimizer.SKILL_RANGE['ub'],
+                                        integer=True) for skill in Skill]
+            # Optimize initial guess
+            for i, skill in enumerate(Skill):
                 if skill in target_values:
-                    skill_ratings[i].value = target_values[skill] - all_ratings[
-                        self.skills[skill].attribute].value  # Optimize initial guess
-                all_ratings[skill] = skill_ratings[i]
+                    attribute_rating = self._get_gekko_var(self.skills[skill].attribute, attribute_ratings).value
+                    skill_ratings[i].value = target_values[skill] - attribute_rating
 
             # Target value constraints: Target values must be met or larger.
-            for target_name, target_value in target_values.items():
-                value_property = self.skills.get(target_name,
-                                                 self.derived_properties.get(target_name,
-                                                                             ValueProperty('', 0)))
-                rating = all_ratings.get(target_name, 0)
-                related_attribute_rating = all_ratings.get(value_property.attribute, 0)
-                value_offset = value_property.offset
-                solver.Equation(rating + related_attribute_rating + value_offset >= target_value)
+            for target, target_value in target_values.items():
+                if target in Attribute:
+                    solver.Equation(self._get_gekko_var(target, attribute_ratings) >= target_value)
+                else:
+                    if target in Skill:
+                        rating = self._get_gekko_var(target, skill_ratings)
+                        related_attribute = self.skills[target].attribute
+                    else:  # Derived property
+                        rating = self.derived_properties[target].offset
+                        related_attribute = self.derived_properties[target].attribute
+                    solver.Equation(rating + self._get_gekko_var(related_attribute, attribute_ratings) >= target_value)
 
             # Tree of learning constraint: number of non-zero skill ratings >= max. skill rating
             epsilon_for_zero = 0.5  # threshold for a "zero" value
@@ -354,14 +354,13 @@ class AttributeSkillOptimizer:
                 max_skill_rating = solver.Intermediate(solver.max3(max_skill_rating, skill_rating))
             solver.Equation(number_of_nonzero_skill_ratings >= max_skill_rating)
 
-            threshold = solver.Const(value=3, name='THRESHOLD')
-
             # Objective (intermediates for readability).
-            k = np.array([solver.min3(attribute_rating, threshold) for attribute_rating in attribute_ratings])
+            k = np.array([solver.min3(attribute_rating, 3) for attribute_rating in attribute_ratings])
             attribute_cost = solver.Intermediate(
-                solver.sum((k - 1) * (k + 2) + 2.5 * (attribute_ratings - k) * (attribute_ratings + k - threshold)),
+                solver.sum((k - 1) * (k + 2) + 2.5 * (attribute_ratings - k) * (attribute_ratings + k - 3)),
                 name='attribute_cost')
-            skill_cost = solver.Intermediate(solver.sum(skill_ratings * (skill_ratings + 1)), name='skill_cost')
+            skill_cost = solver.Intermediate(solver.sum(skill_ratings * (np.array(skill_ratings) + 1)),
+                                             name='skill_cost')
             solver.Obj(attribute_cost + skill_cost)
 
             # Solve: Use APOPT to find the optimal Integer solution.
@@ -372,21 +371,27 @@ class AttributeSkillOptimizer:
 
             result = AttributeSkillOptimizerResults()
             result.Tier = self.tier
-            result.Attributes = self._get_property_result(Attribute, all_ratings, target_values)
-            skill_property_results = self._get_property_result(Skill, all_ratings, target_values)
+            result.Attributes = self._get_property_result(Attribute, attribute_ratings + skill_ratings, target_values)
+            skill_property_results = self._get_property_result(Skill, attribute_ratings + skill_ratings, target_values)
             result.Skills = SkillResults(
-                rating_values={skill.value: int(all_ratings[skill].value[0]) for skill in Skill},
+                rating_values={skill.value: int(self._get_gekko_var(skill, skill_ratings).value[0]) for skill in Skill},
                 total_values=skill_property_results.Total,
                 target_values=skill_property_results.Target)
-            result.DerivedProperties = self._get_property_result(DerivedProperty, all_ratings, target_values)
+            result.DerivedProperties = self._get_property_result(DerivedProperty,
+                                                                 attribute_ratings + skill_ratings,
+                                                                 target_values)
             result.XPCost = XPCost(attribute_costs=int(attribute_cost.VALUE.value[0]),
                                    skill_costs=int(skill_cost.VALUE.value[0]),
                                    total_costs=int(solver.options.objfcnval))
             return result
 
+    @staticmethod
+    def _get_gekko_var(var_name: Union[Attribute, Skill], ratings: List[GEKKO.Var]) -> Optional[GEKKO.Var]:
+        return next((rating for rating in ratings if rating.name == f"int_{var_name.name.lower()}"), None)
+
     def _get_property_result(self,
                              property_names: Iterable,
-                             all_ratings: Dict[Union[Attribute, Skill], GEKKO.Var],
+                             all_ratings: List[GEKKO.Var],
                              target_values: Dict[PropertyEnum, int]) -> PropertyResults:
 
         property_result = PropertyResults()
@@ -398,17 +403,48 @@ class AttributeSkillOptimizer:
                     property_result.Missed.append(property_name.name)
         return property_result
 
-    def _get_total_value(self, name: PropertyEnum, all_ratings: Dict[Union[Attribute, Skill], GEKKO.Var]) -> int:
-        if name in self.skills:
-            rating = int(all_ratings[name].value[0])
-            value_property = self.skills[name]
-        elif name in self.derived_properties:
-            rating = 0
-            value_property = self.derived_properties[name]
-        else:  # Attribute
-            rating = 0
-            value_property = ValueProperty(name, 0)
-        return rating + int(all_ratings[value_property.attribute].value[0]) + value_property.offset
+    def _get_total_value(self, name: PropertyEnum, all_ratings: List[GEKKO.Var]) -> int:
+        if name in Attribute:
+            return int(self._get_gekko_var(name, all_ratings).value[0])
+
+        if name in Skill:
+            rating = int(self._get_gekko_var(name, all_ratings).value[0])
+            related_attribute = self.skills[name].attribute
+        else:  # Derived property
+            rating = self.derived_properties[name].offset
+            related_attribute = self.derived_properties[name].attribute
+        return rating + int(self._get_gekko_var(related_attribute, all_ratings).value[0])
+
+
+class OutputFormat(StringEnum):
+    Markdown = 'md'
+    JSON = 'json'
+
+
+def optimize_xp_from_and_to_json(target_value_string: str) -> str:
+    """
+    Parses & optimizes selected target values the xp.
+    :param target_value_string: JSON string with the target values.
+    :return: JSON string with the results.
+    """
+    return optimize_xp(json.loads(target_value_string), output_format=OutputFormat.JSON)
+
+
+def optimize_xp(target_values: Dict[str, int],
+                output_format: OutputFormat = OutputFormat.JSON,
+                is_verbose: bool = False) -> str:
+    """
+    :param target_values: A dictionary containing key-value pairs for 'Tier' and the target values to optimize for
+    :param output_format: The string format of the return value
+    :param is_verbose: Flag to show detailed solver output.
+    :return: The attributes, skills & derived properties. Either as Markdown table or as JSON string.
+    """
+    tier = target_values.pop('Tier', None)
+    if tier is None:
+        raise IOError("'Tier' is a mandatory parameter!")
+    optimizer = AttributeSkillOptimizer(tier=tier, is_verbose=is_verbose)
+    optimizer_result = optimizer.optimize_selection(target_values=input_target_values)
+    return str(optimizer_result) if output_format == OutputFormat.JSON else json.dumps(dict(optimizer_result), indent=2)
 
 
 if __name__ == '__main__':
@@ -448,26 +484,22 @@ if __name__ == '__main__':
                             choices=range(value_bounds['lb'], value_bounds['ub'] + 1))
 
     input_arguments = vars(parser.parse_args())
-    input_tier = None
+
+    # Input values from file...
     input_target_values = dict()
     if input_arguments['file'] is not None:
         if not os.path.isfile(input_arguments['file']):
             raise FileNotFoundError(f"For argument '--file {input_arguments['file']}'")
         with open(input_arguments['file'], 'r') as file:
             input_target_values = json.load(file)
-            input_tier = input_target_values.pop('Tier')
-
-    # Direct command line parameters overwrite file-based values.
+    # ...and directly via command line parameters (supersede file-based values).
     for target_enum in [Attribute, Skill, DerivedProperty]:
         input_target_values.update(
             {target_name.name: input_arguments[target_name.name] for target_name in target_enum if
              input_arguments[target_name.name] is not None})
     if input_arguments['Tier'] is not None:
-        input_tier = input_arguments['Tier']
+        input_target_values['Tier'] = input_arguments['Tier']
 
-    if input_tier is None:
-        raise IOError("'Tier' must be given (either in the file or via command line argument!")
-
-    optimizer = AttributeSkillOptimizer(tier=input_tier)
-    optimizer_result = optimizer.optimize_selection(target_values=input_target_values)
-    print(optimizer_result if input_arguments['return_json'] else json.dumps(dict(optimizer_result), indent=2))
+    print(optimize_xp(input_target_values,
+                      output_format=OutputFormat.JSON if input_arguments['return_json'] else OutputFormat.Markdown,
+                      is_verbose=input_arguments['verbose']))

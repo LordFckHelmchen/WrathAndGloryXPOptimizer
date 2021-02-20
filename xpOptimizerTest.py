@@ -1,15 +1,16 @@
 import unittest
+from dataclasses import dataclass
 from enum import EnumMeta
 from typing import Callable, List, Any, Dict
 
 from xpOptimizer import Attribute, Skill, DerivedProperty, StringEnum, AttributeSkillOptimizer, PropertyResults, XPCost
 
 
+@dataclass
 class IntendedSelection:
-    def __init__(self, tier: int, target_values: Dict[str, int], expected_xp_costs: XPCost):
-        self.tier: int = tier
-        self.target_values: Dict[str, int] = target_values
-        self.expected_xp_cost: XPCost = expected_xp_costs
+    tier: int
+    target_values: Dict[str, int]
+    expected_xp_cost: XPCost
 
 
 class TestPropertyResults(unittest.TestCase):
@@ -89,7 +90,8 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
         self.maxDiff = None
         for property_name in ['Attributes', 'Skills', 'DerivedProperties']:
             missed_targets = result.__getattribute__(property_name).Missed
-            self.assertFalse(any(missed_targets), msg=f"Missed values were not empty:\n{repr(missed_targets)}\nResult{str(result)}")
+            self.assertFalse(any(missed_targets),
+                             msg=f"Missed values were not empty:\n{repr(missed_targets)}\nResult{str(result)}")
         self.assertEqual(selection.expected_xp_cost, result.XPCost, msg=f"\nResult{str(result)}")
 
     def test_name_to_enum_with_members_expect_string_enum(self):
@@ -103,11 +105,28 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
 
     def test_optimize_selection_expect_no_missed_targets_and_expected_xp_cost(self):
         selections = [IntendedSelection(tier=2,
-                                        target_values={"Intellect": 5, "Investigation": 10, "Medicae": 10, "Scholar": 15, "Tech": 10, "MaxWounds": 7},
-                                        expected_xp_costs=XPCost(attribute_costs=120, skill_costs=80)),
+                                        target_values={"Intellect": 5,
+                                                       "Investigation": 10,
+                                                       "Medicae": 10,
+                                                       "Scholar": 15,
+                                                       "Tech": 10,
+                                                       "MaxWounds": 7},
+                                        expected_xp_cost=XPCost(attribute_costs=120, skill_costs=80)),
                       IntendedSelection(tier=1,
-                                        target_values={"Athletics": 5, "Awareness": 3, "BallisticSkill": 7, "Cunning": 2, "Stealth": 10},
-                                        expected_xp_costs=XPCost(attribute_costs=45, skill_costs=50))]
+                                        target_values={"Athletics": 5,
+                                                       "Awareness": 3,
+                                                       "BallisticSkill": 7,
+                                                       "Cunning": 2,
+                                                       "Stealth": 10},
+                                        expected_xp_cost=XPCost(attribute_costs=45, skill_costs=50)),
+                      IntendedSelection(tier=2,
+                                        target_values={"Strength": 5,
+                                                       "Toughness": 5,
+                                                       "Willpower": 2,
+                                                       "BallisticSkill": 2,
+                                                       "Survival": 4,
+                                                       "WeaponSkill": 8},
+                                        expected_xp_cost=XPCost(attribute_costs=84, skill_costs=42))]
         for selection_id, selection in enumerate(selections):
             with self.subTest(i=selection_id):
                 self.run_positive_tests_on_optimize_selection(selection)

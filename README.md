@@ -232,47 +232,47 @@ python xpOptimizer.py --file TestChar.json
 **NOTE**: *The following section is best view in a latex-capable markdown viewer, otherwise the formulas will not be rendered and be readable only to the Tex-fetishist*
 ### Definitions
 
-Name                | Abbreviation | Related Attribute
-------------------- | ------------ | -----------------
-Tier                | Tier         | -
+Name                | Abbreviation | Related Attribute | #Affected Skills/Attributes
+------------------- | ------------ | ----------------- | ---------------------------
+Tier                | Tier         | -                 | 3
 *Attributes*        |
-Agility             | Agi          | -
-Fellowship          | Fel          | -
-Initiative          | Ini          | -
-Intellect           | Int          | -
-Strength            | Str          | -
-Toughness           | Tou          | -
-Willpower           | Wil          | -
+Agility             | Agi          | -                 | 3
+Fellowship          | Fel          | -                 | 3
+Initiative          | Ini          | -                 | 3
+Intellect           | Int          | -                 | 3
+Strength            | Str          | -                 | 3
+Toughness           | Tou          | -                 | 3
+Willpower           | Wil          | -                 | 3
 *Skills*            |
-Athletics           | Athl         | Str
-Awareness           | Awar         | Int
-Ballistic Skill     | BaSk         | Agi
-Cunning             | Cunn         | Fel
-Deception           | Dece         | Fel
-Insight             | Insi         | Fel
-Intimidation        | Inti         | Wil
-Investigation       | Inve         | Int
-Leadership          | Lead         | Wil
-Medicae             | Medi         | Int
-Persuasion          | Pers         | Fel
-Pilot               | Pilo         | Agi
-Psychic Mastery     | PsMa         | Wil
-Scholar             | Scho         | Int
-Stealth             | Stea         | Agi
-Survival            | Surv         | Wil
-Tech                | Tech         | Int
-Weapon Skill        | WeSk         | Ini
+Athletics           | Athl         | Str               | -
+Awareness           | Awar         | Int               | 1
+Ballistic Skill     | BaSk         | Agi               | -
+Cunning             | Cunn         | Fel               | -
+Deception           | Dece         | Fel               | -
+Insight             | Insi         | Fel               | -
+Intimidation        | Inti         | Wil               | -
+Investigation       | Inve         | Int               | -
+Leadership          | Lead         | Wil               | -
+Medicae             | Medi         | Int               | -
+Persuasion          | Pers         | Fel               | -
+Pilot               | Pilo         | Agi               | -
+Psychic Mastery     | PsMa         | Wil               | -
+Scholar             | Scho         | Int               | -
+Stealth             | Stea         | Agi               | -
+Survival            | Surv         | Wil               | -
+Tech                | Tech         | Int               | -
+Weapon Skill        | WeSk         | Ini               | -
 *Derived Properties*|
-Conviction          | Conv         | Wil
-Defence             | Defe         | Ini - 1
-Determination       | Dete         | Tou
-Influence           | Infl         | Fel - 1
-Max Shock           | MaSh         | Wil + Tier
-Max Wounds          | MaWo         | Tou + 2 * Tier
-Passive Awareness   | PaAw         | Awareness / 2
-Resilience          | Resi         | Tou + 1
-Resolve             | Reso         | Wil - 1
-Wealth              | Weal         | Tier
+Conviction          | Conv         | Wil               | -
+Defence             | Defe         | Ini - 1           | -
+Determination       | Dete         | Tou               | -
+Influence           | Infl         | Fel - 1           | -
+Max Shock           | MaSh         | Wil + Tier        | -
+Max Wounds          | MaWo         | Tou + 2 * Tier    | -
+Passive Awareness   | PaAw         | Awareness / 2     | -
+Resilience          | Resi         | Tou + 1           | -
+Resolve             | Reso         | Wil - 1           | -
+Wealth              | Weal         | Tier              | -
 
 Name             | Symbol
 ---------------- | ------

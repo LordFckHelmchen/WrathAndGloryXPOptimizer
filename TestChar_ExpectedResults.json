@@ -1,0 +1,89 @@
+{
+  "Tier": 3,
+  "Attributes": {
+    "Total": {
+      "Strength": 1,
+      "Toughness": 4,
+      "Agility": 7,
+      "Initiative": 7,
+      "Willpower": 1,
+      "Intellect": 1,
+      "Fellowship": 3
+    },
+    "Target": {
+      "Agility": 5
+    },
+    "Missed": []
+  },
+  "Skills": {
+    "Rating": {
+      "Athletics": 0,
+      "Awareness": 0,
+      "BallisticSkill": 4,
+      "Cunning": 4,
+      "Deception": 5,
+      "Insight": 0,
+      "Intimidation": 0,
+      "Investigation": 0,
+      "Leadership": 0,
+      "Medicae": 0,
+      "Persuasion": 1,
+      "Pilot": 1,
+      "PsychicMastery": 0,
+      "Scholar": 0,
+      "Stealth": 6,
+      "Survival": 0,
+      "Tech": 0,
+      "WeaponSkill": 0
+    },
+    "Total": {
+      "Athletics": 1,
+      "Awareness": 1,
+      "BallisticSkill": 11,
+      "Cunning": 7,
+      "Deception": 8,
+      "Insight": 3,
+      "Intimidation": 1,
+      "Investigation": 1,
+      "Leadership": 1,
+      "Medicae": 1,
+      "Persuasion": 2,
+      "Pilot": 8,
+      "PsychicMastery": 1,
+      "Scholar": 1,
+      "Stealth": 13,
+      "Survival": 1,
+      "Tech": 1,
+      "WeaponSkill": 7
+    },
+    "Target": {
+      "BallisticSkill": 11,
+      "Cunning": 7,
+      "Deception": 8,
+      "Stealth": 13
+    },
+    "Missed": []
+  },
+  "Traits": {
+    "Total": {
+      "Conviction": 1,
+      "Defence": 6,
+      "Determination": 4,
+      "Influence": 2,
+      "MaxShock": 4,
+      "MaxWounds": 10,
+      "Resilience": 5,
+      "Resolve": 0
+    },
+    "Target": {
+      "Defence": 6,
+      "MaxWounds": 10
+    },
+    "Missed": []
+  },
+  "XPCost": {
+    "Attributes": 190,
+    "Skills": 116,
+    "Total": 306
+  }
+}

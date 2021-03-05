@@ -2,7 +2,7 @@
 
 Evert wondered if it is better to choose *Agility* over separate points into *Ballistic Skill* & *Stealth*? Ever thought that your current character has only *Intellect* but no points left for anything else?
 
-This repo contains a Mixed-Integer Non-Linear Programming (MI-NLP) optimization solution to spending the optimal amount of XP on selected attributes, skills & derived properties in the role-playing game [Wrath & Glory by Cubicle 7](https://www.cubicle7games.com/our-games/wrath-glory/).
+This repo contains a Mixed-Integer Non-Linear Programming (MI-NLP) optimization solution to spending the optimal amount of XP on selected attributes, skills & traits in the role-playing game [Wrath & Glory by Cubicle 7](https://www.cubicle7games.com/our-games/wrath-glory/).
 
 For simple character management, I recommend using the [Character Forge @ Doctors of Doom](https://www.doctors-of-doom.com/forge/my-characters). The XP optimizer can then be used on a created character to minimized the spent XP. Just pass in your desired target values (e.g. total value for *Cunning*, *Tech* & *Deception* and your desired *Strength*) and the optimizer will figure out the best distribution to use with minimal XP.
 
@@ -12,7 +12,7 @@ The optimizer is written for the core ruleset v2.1. It does not take into accoun
 
 ## Installation
 
-- Install Python (3.6 or better) if not already done.
+- Install Python (3.8 or better) if not already done.
 - Switch to folder of this project, open terminal & install requirements
   
    ```Bash
@@ -78,7 +78,7 @@ Survival       | 0      | 1      | -      | -
 Tech           | 0      | 1      | -      | -     
 WeaponSkill    | 0      | 1      | -      | -     
 
-## DerivedProperties
+## Traits
 Name          | Total  | Target | Missed
 ------------- | ------ | ------ | ------
 Conviction    | 1      | -      | -     
@@ -168,7 +168,7 @@ which will create:
     "Target": {},
     "Missed": []
   },
-  "DerivedProperties": {
+  "Traits": {
     "Total": {
       "Conviction": 1,
       "Defence": 0,
@@ -262,7 +262,7 @@ Stealth             | Stea         | Agi               | -
 Survival            | Surv         | Wil               | -
 Tech                | Tech         | Int               | -
 Weapon Skill        | WeSk         | Ini               | -
-*Derived Properties*|
+*Traits*|
 Conviction          | Conv         | Wil               | -
 Defence             | Defe         | Ini - 1           | -
 Determination       | Dete         | Tou               | -

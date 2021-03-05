@@ -1,84 +1,17 @@
-__version__ = 1.3
+__version__ = 1.4
 
 import argparse
 import json
 import os
-from collections import namedtuple, OrderedDict
-from enum import Enum
-from typing import Optional, Dict, Union, Iterable, List, Tuple
+from typing import Optional, Dict, Union, List, Tuple, Type
 
 import numpy as np
 from gekko import GEKKO
 
-ValueProperty = namedtuple('PropertyValue', ['attribute', 'offset'])
+from characterProperties import Tier, Attributes, Skills, Traits, IntBounds
 
 
-class StringEnum(Enum):
-    @classmethod
-    def is_value(cls, value: str):
-        return any(value == member.value for member in cls)
-
-    @classmethod
-    def is_name(cls, name: str):
-        return any(name == member.name for member in cls)
-
-    @classmethod
-    def from_name_or_value(cls, name_or_value: str):
-        if cls.is_value(name_or_value):
-            # noinspection PyArgumentList
-            return cls(name_or_value)
-        if cls.is_name(name_or_value):
-            return getattr(cls, name_or_value)
-        else:
-            return None
-
-
-class Attribute(StringEnum):
-    Strength = 'S'
-    Toughness = 'T'
-    Agility = 'A'
-    Initiative = 'I'
-    Willpower = 'Wil'
-    Intellect = 'Int'
-    Fellowship = 'Fel'
-
-
-class Skill(StringEnum):
-    Athletics = 'Athletics'
-    Awareness = 'Awareness'
-    BallisticSkill = 'BallisticSkill'
-    Cunning = 'Cunning'
-    Deception = 'Deception'
-    Insight = 'Insight'
-    Intimidation = 'Intimidation'
-    Investigation = 'Investigation'
-    Leadership = 'Leadership'
-    Medicae = 'Medicae'
-    Persuasion = 'Persuasion'
-    Pilot = 'Pilot'
-    PsychicMastery = 'PsychicMastery'
-    Scholar = 'Scholar'
-    Stealth = 'Stealth'
-    Survival = 'Survival'
-    Tech = 'Tech'
-    WeaponSkill = 'WeaponSkill'
-
-
-class DerivedProperty(StringEnum):
-    Defence = 'Defence'
-    Resilience = 'Resilience'
-    Determination = 'Determination'
-    MaxWounds = 'MaxWounds'
-    MaxShock = 'MaxShock'
-    Conviction = 'Conviction'
-    Resolve = 'Resolve'
-    Influence = 'Influence'
-
-
-PropertyEnum = Union[Attribute, Skill, DerivedProperty]
-
-
-class PropertyResults:
+class CharacterPropertyResults:
     def __init__(self,
                  total_values: Dict[str, int] = None,
                  target_values: Dict[str, int] = None):
@@ -137,7 +70,7 @@ class PropertyResults:
                 target in self.Total and self.Total[target] < target_value]
 
 
-class SkillResults(PropertyResults):
+class SkillResults(CharacterPropertyResults):
     def __init__(self,
                  rating_values: Dict[str, int] = None,
                  total_values: Dict[str, int] = None,
@@ -204,22 +137,22 @@ class XPCost:
 class AttributeSkillOptimizerResults:
     def __init__(self,
                  tier: int = None,
-                 attributes: PropertyResults = PropertyResults(),
+                 attributes: CharacterPropertyResults = CharacterPropertyResults(),
                  skills: SkillResults = SkillResults(),
-                 derived_properties: PropertyResults = PropertyResults(),
+                 traits: CharacterPropertyResults = CharacterPropertyResults(),
                  xp_cost: XPCost = XPCost()
                  ):
         self.Tier: Optional[int] = tier
-        self.Attributes: PropertyResults = attributes
+        self.Attributes: CharacterPropertyResults = attributes
         self.Skills: SkillResults = skills
-        self.DerivedProperties: PropertyResults = derived_properties
+        self.Traits: CharacterPropertyResults = traits
         self.XPCost: XPCost = xp_cost
 
     def __iter__(self) -> dict:
         yield 'Tier', self.Tier
         yield 'Attributes', dict(self.Attributes)
         yield 'Skills', dict(self.Skills)
-        yield 'DerivedProperties', dict(self.DerivedProperties)
+        yield 'Traits', dict(self.Traits)
         yield 'XPCost', dict(self.XPCost)
 
     def __str__(self):
@@ -254,56 +187,16 @@ class AttributeSkillOptimizer:
                               'minlp_integer_tol 0.05',  # maximum deviation from whole number
                               'minlp_gap_tol 0.01')  # convergence tolerance
 
-    TIER_RANGE = {'lb': 1, 'ub': 5}
-    ATTRIBUTE_RANGE = {'lb': 1, 'ub': 12}
-    SKILL_RANGE = {'lb': 0, 'ub': 8}
-
     def __init__(self,
                  tier: int = 1,
                  is_verbose: bool = False,
                  solver_options: Tuple[str] = DEFAULT_SOLVER_OPTIONS):
-        if tier < AttributeSkillOptimizer.TIER_RANGE['lb'] or tier > AttributeSkillOptimizer.TIER_RANGE['ub']:
-            raise IOError(
-                f"'tier' must be an integer within {list(AttributeSkillOptimizer.TIER_RANGE.values())}, was {tier}")
+        if not Tier.is_valid_rating(tier):
+            raise IOError(f"'tier' must be within {Tier.rating_bounds}, was {tier} instead.")
         self.tier: int = tier
-        self.skills = OrderedDict({Skill.Athletics: ValueProperty(Attribute.Strength, 0),
-                                   Skill.Awareness: ValueProperty(Attribute.Intellect, 0),
-                                   Skill.BallisticSkill: ValueProperty(Attribute.Agility, 0),
-                                   Skill.Cunning: ValueProperty(Attribute.Fellowship, 0),
-                                   Skill.Deception: ValueProperty(Attribute.Fellowship, 0),
-                                   Skill.Insight: ValueProperty(Attribute.Fellowship, 0),
-                                   Skill.Intimidation: ValueProperty(Attribute.Willpower, 0),
-                                   Skill.Investigation: ValueProperty(Attribute.Intellect, 0),
-                                   Skill.Leadership: ValueProperty(Attribute.Willpower, 0),
-                                   Skill.Medicae: ValueProperty(Attribute.Intellect, 0),
-                                   Skill.Persuasion: ValueProperty(Attribute.Fellowship, 0),
-                                   Skill.Pilot: ValueProperty(Attribute.Agility, 0),
-                                   Skill.PsychicMastery: ValueProperty(Attribute.Willpower, 0),
-                                   Skill.Scholar: ValueProperty(Attribute.Intellect, 0),
-                                   Skill.Stealth: ValueProperty(Attribute.Agility, 0),
-                                   Skill.Survival: ValueProperty(Attribute.Willpower, 0),
-                                   Skill.Tech: ValueProperty(Attribute.Intellect, 0),
-                                   Skill.WeaponSkill: ValueProperty(Attribute.Initiative, 0)})
-        self.derived_properties = OrderedDict({DerivedProperty.Conviction: ValueProperty(Attribute.Willpower, 0),
-                                               DerivedProperty.Defence: ValueProperty(Attribute.Initiative, -1),
-                                               DerivedProperty.Determination: ValueProperty(Attribute.Toughness, 0),
-                                               DerivedProperty.Influence: ValueProperty(Attribute.Fellowship, -1),
-                                               DerivedProperty.MaxShock: ValueProperty(Attribute.Willpower, tier),
-                                               DerivedProperty.MaxWounds: ValueProperty(Attribute.Toughness, 2 * tier),
-                                               DerivedProperty.Resilience: ValueProperty(Attribute.Toughness, 1),
-                                               DerivedProperty.Resolve: ValueProperty(Attribute.Willpower, -1)})
-
         self.solver_id = 1  # Use APOPT to find the optimal Integer solution, since this is a MINLP.
         self.solver_options = solver_options
         self.is_verbose: bool = is_verbose
-
-    @staticmethod
-    def name_to_enum(name: str) -> Optional[StringEnum]:
-        for enum_class in [Attribute, Skill, DerivedProperty]:
-            name_as_enum = enum_class.from_name_or_value(name)
-            if name_as_enum is not None:
-                return name_as_enum
-        raise KeyError(f"Invalid value name: {name}")
 
     def optimize_selection(self, target_values: Dict[str, int]) -> AttributeSkillOptimizerResults:
         """
@@ -311,38 +204,40 @@ class AttributeSkillOptimizer:
         ----
         This was done with the help of John Hedengren from Gekko (see https://stackoverflow.com/questions/65863807)
         """
-        target_values = {AttributeSkillOptimizer.name_to_enum(key): value for key, value in target_values.items()}
+        if not is_valid_target_values_dict({Tier.full_name: self.tier, **target_values}):
+            raise IOError(f"Invalid target values found: \n{json.dumps(target_values, indent=2)}")
 
         with GekkoContext(remote=False) as solver:
             # Define variables with optimized initial values.
             attribute_ratings = [solver.Var(name=attribute.name,
-                                            value=target_values.get(attribute,
-                                                                    AttributeSkillOptimizer.ATTRIBUTE_RANGE['lb']),
-                                            lb=AttributeSkillOptimizer.ATTRIBUTE_RANGE['lb'],
-                                            ub=AttributeSkillOptimizer.ATTRIBUTE_RANGE['ub'],
-                                            integer=True) for attribute in Attribute]
+                                            value=target_values.get(attribute.name,
+                                                                    attribute.value.rating_bounds.min),
+                                            lb=attribute.value.rating_bounds.min,
+                                            ub=attribute.value.rating_bounds.max,
+                                            integer=True) for attribute in Attributes.get_valid_members()]
             skill_ratings = [solver.Var(name=skill.name,
-                                        value=AttributeSkillOptimizer.SKILL_RANGE['lb'],
-                                        lb=AttributeSkillOptimizer.SKILL_RANGE['lb'],
-                                        ub=AttributeSkillOptimizer.SKILL_RANGE['ub'],
-                                        integer=True) for skill in Skill]
+                                        value=skill.value.rating_bounds.min,
+                                        lb=skill.value.rating_bounds.min,
+                                        ub=skill.value.rating_bounds.max,
+                                        integer=True) for skill in Skills.get_valid_members()]
             # Optimize initial guess
-            for i, skill in enumerate(Skill):
-                if skill in target_values:
-                    attribute_rating = self._get_gekko_var(self.skills[skill].attribute, attribute_ratings).value
-                    skill_ratings[i].value = target_values[skill] - attribute_rating
+            for i, skill in enumerate(Skills):
+                if skill.name in target_values:
+                    attribute_rating = self._get_gekko_var(skill.value.related_attribute, attribute_ratings).value
+                    skill_ratings[i].value = target_values[skill.name] - attribute_rating
 
             # Target value constraints: Target values must be met or larger.
             for target, target_value in target_values.items():
-                if target in Attribute:
-                    solver.Equation(self._get_gekko_var(target, attribute_ratings) >= target_value)
+                if (target_enum := Attributes.get_by_name(target)) != Attributes.INVALID:
+                    solver.Equation(self._get_gekko_var(target_enum, attribute_ratings) >= target_value)
                 else:
-                    if target in Skill:
-                        rating = self._get_gekko_var(target, skill_ratings)
-                        related_attribute = self.skills[target].attribute
-                    else:  # Derived property
-                        rating = self.derived_properties[target].offset
-                        related_attribute = self.derived_properties[target].attribute
+                    if (target_enum := Skills.get_by_name(target)) != Skills.INVALID:
+                        rating = self._get_gekko_var(target_enum, skill_ratings)
+                        related_attribute = target_enum.value.related_attribute
+                    else:  # Traits
+                        target_enum = Traits.get_by_name(target)
+                        rating = target_enum.value.get_total_attribute_offset(related_tier=self.tier)
+                        related_attribute = target_enum.value.related_attribute
                     solver.Equation(rating + self._get_gekko_var(related_attribute, attribute_ratings) >= target_value)
 
             # Tree of learning constraint: number of non-zero skill ratings >= max. skill rating
@@ -371,88 +266,87 @@ class AttributeSkillOptimizer:
 
             result = AttributeSkillOptimizerResults()
             result.Tier = self.tier
-            result.Attributes = self._get_property_result(Attribute, attribute_ratings + skill_ratings, target_values)
-            skill_property_results = self._get_property_result(Skill, attribute_ratings + skill_ratings, target_values)
+            result.Attributes = self._get_property_result(Attributes, attribute_ratings + skill_ratings, target_values)
+            skill_property_results = self._get_property_result(Skills, attribute_ratings + skill_ratings, target_values)
             result.Skills = SkillResults(
-                rating_values={skill.value: int(self._get_gekko_var(skill, skill_ratings).value[0]) for skill in Skill},
+                rating_values={skill.name: int(self._get_gekko_var(skill, skill_ratings).value[0])
+                               for skill in Skills.get_valid_members()},
                 total_values=skill_property_results.Total,
                 target_values=skill_property_results.Target)
-            result.DerivedProperties = self._get_property_result(DerivedProperty,
-                                                                 attribute_ratings + skill_ratings,
-                                                                 target_values)
+            result.Traits = self._get_property_result(Traits,
+                                                      attribute_ratings + skill_ratings,
+                                                      target_values)
             result.XPCost = XPCost(attribute_costs=int(attribute_cost.VALUE.value[0]),
                                    skill_costs=int(skill_cost.VALUE.value[0]),
                                    total_costs=int(solver.options.objfcnval))
             return result
 
     @staticmethod
-    def _get_gekko_var(var_name: Union[Attribute, Skill], ratings: List[GEKKO.Var]) -> Optional[GEKKO.Var]:
-        return next((rating for rating in ratings if rating.name == f"int_{var_name.name.lower()}"), None)
+    def _get_gekko_var(attribute_or_skill: Union[Attributes, Skills], ratings: List[GEKKO.Var]) -> Optional[GEKKO.Var]:
+        return next((rating for rating in ratings if rating.name == f"int_{attribute_or_skill.name.lower()}"), None)
 
     def _get_property_result(self,
-                             property_names: Iterable,
+                             property_class: Union[Type[Attributes], Type[Skills], Type[Traits]],
                              all_ratings: List[GEKKO.Var],
-                             target_values: Dict[PropertyEnum, int]) -> PropertyResults:
+                             target_values: Dict[str, int]) -> CharacterPropertyResults:
 
-        property_result = PropertyResults()
-        for property_name in property_names:
-            property_result.Total[property_name.name] = self._get_total_value(property_name, all_ratings)
+        property_result = CharacterPropertyResults()
+        for property_member in property_class.get_valid_members():
+            property_name = property_member.name
+            property_result.Total[property_name] = self._get_total_value(property_member, all_ratings)
             if property_name in target_values:
-                property_result.Target[property_name.name] = target_values[property_name]
-                if property_result.Target[property_name.name] != property_result.Total[property_name.name]:
-                    property_result.Missed.append(property_name.name)
+                property_result.Target[property_name] = target_values[property_name]
+                if property_result.Target[property_name] != property_result.Total[property_name]:
+                    property_result.Missed.append(property_name)
         return property_result
 
-    def _get_total_value(self, name: PropertyEnum, all_ratings: List[GEKKO.Var]) -> int:
-        if name in Attribute:
-            return int(self._get_gekko_var(name, all_ratings).value[0])
+    def _get_total_value(self, target_enum: Union[Attributes, Skills, Traits], all_ratings: List[GEKKO.Var]) -> int:
+        if target_enum in Attributes:
+            rating = 0
+            related_attribute = target_enum
+        elif target_enum in Skills:
+            rating = int(self._get_gekko_var(target_enum, all_ratings).value[0])
+            related_attribute = target_enum.value.related_attribute
+        else:  # Traits
+            rating = target_enum.value.get_total_attribute_offset(self.tier)
+            related_attribute = target_enum.value.related_attribute
 
-        if name in Skill:
-            rating = int(self._get_gekko_var(name, all_ratings).value[0])
-            related_attribute = self.skills[name].attribute
-        else:  # Derived property
-            rating = self.derived_properties[name].offset
-            related_attribute = self.derived_properties[name].attribute
         return rating + int(self._get_gekko_var(related_attribute, all_ratings).value[0])
 
 
-class OutputFormat(StringEnum):
-    Markdown = 'md'
-    JSON = 'json'
-
-
-def optimize_xp_from_and_to_json(target_value_string: str) -> str:
+def optimize_xp(target_values: Dict[str, int], is_verbose: bool = False) -> AttributeSkillOptimizerResults:
     """
-    Parses & optimizes selected target values the xp.
-    :param target_value_string: JSON string with the target values.
-    :return: JSON string with the results.
-    """
-    return optimize_xp(json.loads(target_value_string), output_format=OutputFormat.JSON)
-
-
-def optimize_xp(target_values: Dict[str, int],
-                output_format: OutputFormat = OutputFormat.JSON,
-                is_verbose: bool = False) -> str:
-    """
-    :param target_values: A dictionary containing key-value pairs for 'Tier' and the target values to optimize for
-    :param output_format: The string format of the return value
+    :param target_values: A dictionary containing key-value pairs for 'Tier' and the attributes, skills & traits.
     :param is_verbose: Flag to show detailed solver output.
-    :return: The attributes, skills & derived properties. Either as Markdown table or as JSON string.
+    :return: The attributes, skills & traits. Either as Markdown table or as JSON string.
     """
     tier = target_values.pop('Tier', None)
     if tier is None:
         raise IOError("'Tier' is a mandatory parameter!")
     optimizer = AttributeSkillOptimizer(tier=tier, is_verbose=is_verbose)
-    optimizer_result = optimizer.optimize_selection(target_values=input_target_values)
-    return str(optimizer_result) if output_format == OutputFormat.JSON else json.dumps(dict(optimizer_result), indent=2)
+    return optimizer.optimize_selection(target_values=target_values)
+
+
+def is_valid_target_values_dict(target_values: Dict[str, int]) -> bool:
+    tier = target_values.get(Tier.full_name)
+    if not Tier.is_valid_rating(tier):
+        return False
+
+    for target_name, target_value in target_values.items():
+        if not (target_name == Tier.full_name
+                or Attributes.get_by_name(target_name).value.is_valid_rating(target_value)
+                or Skills.get_by_name(target_name).value.is_valid_total_rating(target_value)
+                or Traits.get_by_name(target_name).value.is_valid_rating(target_value, tier)):
+            return False
+    return True
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=f"XP Optimizer for Wrath & Glory v{AttributeSkillOptimizer.WRATH_AND_GLORY_CORE_RULES_VERSION}. "
-                    f"Target values can be given for each attribute and skill and for most derived properties (e.g. "
-                    f"conviction, max. wounds, ...). The function will try to optimize the spent XP, e.g. optimally "
-                    f"increase attributes & skills with a min. amount of xp.",
+                    f"Target values can be given for each attribute and skill and for most traits (e.g. conviction, "
+                    f"max. wounds, ...). The function will try to optimize the spent XP, e.g. optimally increase "
+                    f"attributes & skills with a min. amount of xp.",
         add_help=True)
     parser.add_argument('-f', '--file',
                         type=str,
@@ -460,28 +354,24 @@ if __name__ == '__main__':
                              'for names & value ranges). The file MUST contain the tier value. If the file is '
                              'specified, duplicate command line parameters take precedence.')
     parser.add_argument('-j', '--return_json',
-                        action='store_false',
+                        action='store_true',
                         help='If enabled, prints the result as JSON string instead of as Markdown table (default).')
     parser.add_argument('-v', '--verbose',
                         action='store_true',
                         help='If enabled, shows diagnostic output of the solver.')
     parser.add_argument('--Tier',
                         type=int,
-                        choices=range(AttributeSkillOptimizer.TIER_RANGE['lb'],
-                                      AttributeSkillOptimizer.TIER_RANGE['ub'] + 1),
+                        choices=Tier.rating_bounds.as_range(),
                         help='The tier of the character.')
 
-    # Add optional inputs for each attribute, skill & derived property.
-    for target_enum in [Attribute, Skill]:
-        value_bounds = getattr(AttributeSkillOptimizer, str(target_enum.__name__).upper() + '_RANGE')
-        for target_name in target_enum:
-            parser.add_argument(f'--{target_name.name}',
-                                type=int,
-                                choices=range(value_bounds['lb'], value_bounds['ub'] + 1))
-    for target_name in DerivedProperty:
-        parser.add_argument(f'--{target_name.name}',
-                            type=int,
-                            choices=range(value_bounds['lb'], value_bounds['ub'] + 1))
+    # Add optional inputs for each attribute, skill & trait
+    for target_enum_class in [Attributes, Skills]:
+        for target_enum in target_enum_class.get_valid_members():
+            parser.add_argument(f'--{target_enum.name}', type=int, choices=target_enum.value.rating_bounds.as_range())
+    for trait in Traits.get_valid_members():
+        rating_bounds = IntBounds(trait.value.get_rating_bounds(related_tier=Tier.rating_bounds.min).min,
+                                  trait.value.get_rating_bounds(related_tier=Tier.rating_bounds.max).max)
+        parser.add_argument(f'--{trait.name}', type=int, choices=rating_bounds.as_range())
 
     input_arguments = vars(parser.parse_args())
 
@@ -493,13 +383,12 @@ if __name__ == '__main__':
         with open(input_arguments['file'], 'r') as file:
             input_target_values = json.load(file)
     # ...and directly via command line parameters (supersede file-based values).
-    for target_enum in [Attribute, Skill, DerivedProperty]:
+    for target_enum_class in [Attributes, Skills, Traits]:
         input_target_values.update(
-            {target_name.name: input_arguments[target_name.name] for target_name in target_enum if
-             input_arguments[target_name.name] is not None})
+            {target_enum.name: input_arguments[target_enum.name] for target_enum in target_enum_class.get_valid_members() if
+             input_arguments.get(target_enum.name) is not None})
     if input_arguments['Tier'] is not None:
         input_target_values['Tier'] = input_arguments['Tier']
 
-    print(optimize_xp(input_target_values,
-                      output_format=OutputFormat.JSON if input_arguments['return_json'] else OutputFormat.Markdown,
-                      is_verbose=input_arguments['verbose']))
+    optimizer_result = optimize_xp(input_target_values, is_verbose=input_arguments['verbose'])
+    print(json.dumps(dict(optimizer_result), indent=2) if input_arguments['return_json'] else str(optimizer_result))

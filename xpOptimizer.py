@@ -333,7 +333,8 @@ def is_valid_target_values_dict(target_values: Dict[str, int]) -> bool:
         return False
 
     for target_name, target_value in target_values.items():
-        if not (target_name == Tier.full_name
+        if not (isinstance(target_name, str)
+                or target_name == Tier.full_name
                 or Attributes.get_by_name(target_name).value.is_valid_rating(target_value)
                 or Skills.get_by_name(target_name).value.is_valid_total_rating(target_value)
                 or Traits.get_by_name(target_name).value.is_valid_rating(target_value, tier)):

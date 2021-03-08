@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import Dict
 
 from characterProperties import Tier, IntBounds, Attributes, Skills, Traits
-from xpOptimizer import AttributeSkillOptimizer, CharacterPropertyResults, XPCost, is_valid_target_values_dict, \
-    AttributeSkillOptimizerResults
+from xpOptimizer import AttributeSkillOptimizer, is_valid_target_values_dict
+from xpOptimizerResults import CharacterPropertyResults, XPCost, AttributeSkillOptimizerResults
 
 
 @dataclass

@@ -134,6 +134,10 @@ class TestIsValidTargetValuesDict(unittest.TestCase):
     def get_minimal_valid_target_values() -> Dict[str, int]:
         return {Tier.full_name: Tier.rating_bounds.min}
 
+    def assert_is_invalid_target_values_dict(self, target_values: Dict):
+        self.assertFalse(is_valid_target_values_dict(target_values),
+                         f"Expected target values dict to be invalid: {target_values}")
+
     def run_invalid_values_test(self, valid_key: str, value_bounds: IntBounds):
         for invalid_value in ["1", 1.0, value_bounds.min - 1, value_bounds.max + 1]:
             with self.subTest(i=f"{valid_key}: {invalid_value}"):

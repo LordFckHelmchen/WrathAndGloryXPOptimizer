@@ -59,7 +59,7 @@ def optimize_xp():
     # noinspection PyBroadException
     try:
         return dict(xpOptimizer.optimize_xp(json.loads(request.args["target_values"])))
-    except Exception as err:
+    except:
         app.logger.error(f"Optimizer error for target value dict {request.args['target_values']}: "
                          f"{sys.exc_info()[0]}: {sys.exc_info()[1]}")
         abort(500)

@@ -143,7 +143,7 @@ class TestIsValidTargetValuesDict(unittest.TestCase):
             with self.subTest(i=f"{valid_key}: {invalid_value}"):
                 target_values = TestIsValidTargetValuesDict.get_minimal_valid_target_values()
                 target_values[valid_key] = invalid_value
-                self.assertFalse(is_valid_target_values_dict(target_values))
+                self.assert_is_invalid_target_values_dict(target_values)
 
     def test_empty_dict_expect_False(self):
         self.assertFalse(is_valid_target_values_dict(dict()))
@@ -168,10 +168,15 @@ class TestIsValidTargetValuesDict(unittest.TestCase):
             with self.subTest(i=invalid_key):
                 target_values = {**TestIsValidTargetValuesDict.get_minimal_valid_target_values(),
                                  invalid_key: VALID_VALUE}
-                self.assertFalse(is_valid_target_values_dict(target_values), target_values)
+                self.assert_is_invalid_target_values_dict(target_values)
 
     def test_tier_only_dict_expect_False_for_non_integer_or_out_of_bounds_values(self):
         self.run_invalid_values_test(valid_key=Tier.full_name, value_bounds=Tier.rating_bounds)
+
+    def test_non_string_key_dict_expect_False(self):
+        target_values = TestIsValidTargetValuesDict.get_minimal_valid_target_values()
+        target_values[5] = 1
+        self.assert_is_invalid_target_values_dict(target_values)
 
     def test_attribute_expect_False_for_non_integer_or_out_of_bounds_values(self):
         self.run_invalid_values_test(valid_key=Attributes.Strength.name,

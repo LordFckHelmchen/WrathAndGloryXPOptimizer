@@ -1,4 +1,4 @@
-__version__ = 1.4
+__version__ = 1.5
 
 import argparse
 import json

@@ -30,7 +30,7 @@ class TestPropertyResults(unittest.TestCase):
         for total_value in [target_value, target_value + 1]:
             result = CharacterPropertyResults(total_values={value_name: total_value},
                                               target_values={value_name: target_value})
-            self.assertFalse(any(result.Missed))
+            self.assertFalse(any(result.Missed), f"Unexpected missed values found: {result.Missed}")
 
 
 class TestXPCost(unittest.TestCase):
@@ -53,8 +53,8 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
         for property_name in ['Attributes', 'Skills', 'Traits']:
             missed_targets = result.__getattribute__(property_name).Missed
             self.assertFalse(any(missed_targets),
-                             msg=f"Missed values were not empty:\n{repr(missed_targets)}\nResult{str(result)}")
-        self.assertEqual(selection.expected_xp_cost, result.XPCost, msg=f"\nResult{str(result)}")
+                             f"Missed values were not empty:\n{repr(missed_targets)}\nResult{str(result)}")
+        self.assertEqual(selection.expected_xp_cost, result.XPCost, f"\nResult{str(result)}")
 
         return result
 
@@ -134,6 +134,10 @@ class TestIsValidTargetValuesDict(unittest.TestCase):
     def get_minimal_valid_target_values() -> Dict[str, int]:
         return {Tier.full_name: Tier.rating_bounds.min}
 
+    def assert_is_valid_target_values_dict(self, target_values: Dict):
+        self.assertTrue(is_valid_target_values_dict(target_values),
+                        f"Valid target values dict was not detected: {target_values}")
+
     def assert_is_invalid_target_values_dict(self, target_values: Dict):
         self.assertFalse(is_valid_target_values_dict(target_values),
                          f"Expected target values dict to be invalid: {target_values}")
@@ -146,10 +150,10 @@ class TestIsValidTargetValuesDict(unittest.TestCase):
                 self.assert_is_invalid_target_values_dict(target_values)
 
     def test_empty_dict_expect_False(self):
-        self.assertFalse(is_valid_target_values_dict(dict()))
+        self.assert_is_invalid_target_values_dict(dict())
 
     def test_minimally_valid_target_values_expect_True(self):
-        self.assertTrue(is_valid_target_values_dict(TestIsValidTargetValuesDict.get_minimal_valid_target_values()))
+        self.assert_is_valid_target_values_dict(TestIsValidTargetValuesDict.get_minimal_valid_target_values())
 
     def test_valid_keys_expect_True(self):
         target_values = TestIsValidTargetValuesDict.get_minimal_valid_target_values()
@@ -159,7 +163,7 @@ class TestIsValidTargetValuesDict(unittest.TestCase):
         target_values[valid_item.name] = valid_item.value.total_rating_bounds.min
         valid_item = Traits.MaxShock
         target_values[valid_item.name] = valid_item.value.get_rating_bounds(related_tier=1).min
-        self.assertTrue(is_valid_target_values_dict(target_values))
+        self.assert_is_valid_target_values_dict(target_values)
 
     def test_invalid_keys_expect_False(self):
         # noinspection PyPep8Naming

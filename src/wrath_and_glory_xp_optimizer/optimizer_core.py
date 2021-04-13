@@ -6,8 +6,8 @@ from typing import Optional, Dict, Union, List, Tuple, Type
 import numpy as np
 from gekko import GEKKO
 
-from src.wrath_and_glory_xp_optimizer.characterProperties import Tier, Attributes, Skills, Traits, IntBounds
-from src.wrath_and_glory_xp_optimizer.xpOptimizerResults import CharacterPropertyResults, SkillResults, XPCost, AttributeSkillOptimizerResults
+from .character_properties import Tier, Attributes, Skills, Traits, IntBounds
+from .optimizer_results import CharacterPropertyResults, SkillResults, XPCost, AttributeSkillOptimizerResults
 
 
 class GekkoContext:

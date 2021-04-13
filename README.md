@@ -22,7 +22,7 @@ The optimizer is written for the core ruleset v2.1. It does not take into accoun
 - Try, if it works (shows help content)
 
    ```Bash
-   python xpOptimizer.py -h
+   python optimizer_core.py -h
    ```
   
 ## Usage
@@ -36,7 +36,7 @@ The optimizer takes the tree-of-learning rule into account, but assigns the skil
 For few target properties it is best to use the command-line arguments, e.g. if you want to optimize your *tier* 1 character with *Strength* 3 and *Max Wounds* 5, type:
 
 ```Bash
-python xpOptimizer.py --tier 1 --Strength 3 --MaxWounds 5
+python optimizer_core.py --tier 1 --Strength 3 --MaxWounds 5
 ```
 
 which will output the following markdown table:
@@ -101,7 +101,7 @@ Total      | 20
 If you prefer json instead of markdown, use the `--return_json` flag:
 
 ```Bash
-python xpOptimizer.py --tier 1 --Strength 3 --MaxWounds 5 --return_json
+python optimizer_core.py --tier 1 --Strength 3 --MaxWounds 5 --return_json
 ```
 
 which will create:
@@ -204,7 +204,7 @@ If you have several properties you want to set, or simple want to keep single fi
 - *Defence* 6 (note the British spelling!)
 - *Max Wounds* 10
 
-then create a file (e.g. `TestChar.json`) with the following content:
+then create a file (e.g. `example_target_values.json`) with the following content:
 
 ```JSON
 {
@@ -222,7 +222,7 @@ then create a file (e.g. `TestChar.json`) with the following content:
 then call (assuming the file is in the same folder as the optimizer script):
 
 ```Bash
-python xpOptimizer.py --file TestChar.json
+python optimizer_core.py --file example_target_values.json
 ```
 
 ---

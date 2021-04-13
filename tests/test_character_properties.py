@@ -1,6 +1,6 @@
 import unittest
 
-from src.wrath_and_glory_xp_optimizer.characterProperties import IntBounds
+from src.wrath_and_glory_xp_optimizer.character_properties import IntBounds
 
 
 class TestIntBounds(unittest.TestCase):

@@ -4,7 +4,7 @@ import sys
 
 from flask import Flask, request, abort, Request
 
-import xpOptimizer
+from . import optimizer_core
 
 # Configure logging on WSGI server-defined stream with default config
 # from https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
@@ -39,7 +39,8 @@ def request_to_str(request: Request, prefix: str = ">>> ", suffix: str = " <<<")
            f"{request.headers}" \
            f"{prefix}ARGUMENTS{suffix}\n" \
            f"len_args: {len(request.args)}\n" \
-           f"args_keys: {tuple(request.args.keys()) if len(request.args) <= MAX_ARGUMENT_COUNT_FOR_LOGGING else '<TOO MANY>'}\n"
+           f"args_keys: " \
+           f"{tuple(request.args.keys()) if len(request.args) <= MAX_ARGUMENT_COUNT_FOR_LOGGING else '<TOO MANY>'}\n"
 
 
 @app.route('/optimize_xp')
@@ -52,13 +53,13 @@ def optimize_xp():
         app.logger.warning(f"Unexpected number of arguments received. {request_to_str(request)}")
         # Ignore additional inputs
 
-    if not xpOptimizer.is_valid_target_values_dict(json.loads(request.args["target_values"])):
+    if not optimizer_core.is_valid_target_values_dict(json.loads(request.args["target_values"])):
         app.logger.info(f"Invalid target values dict received: '{request.args['target_values']}'")
         abort(400)
 
     # noinspection PyBroadException
     try:
-        return dict(xpOptimizer.optimize_xp(json.loads(request.args["target_values"])))
+        return dict(optimizer_core.optimize_xp(json.loads(request.args["target_values"])))
     except:
         app.logger.error(f"Optimizer error for target value dict {request.args['target_values']}: "
                          f"{sys.exc_info()[0]}: {sys.exc_info()[1]}")

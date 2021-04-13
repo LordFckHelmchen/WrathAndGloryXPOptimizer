@@ -3,9 +3,9 @@ import unittest
 from dataclasses import dataclass
 from typing import Dict
 
-from src.wrath_and_glory_xp_optimizer.characterProperties import Tier, IntBounds, Attributes, Skills, Traits
-from src.wrath_and_glory_xp_optimizer.xpOptimizer import AttributeSkillOptimizer, is_valid_target_values_dict
-from src.wrath_and_glory_xp_optimizer.xpOptimizerResults import CharacterPropertyResults, XPCost, AttributeSkillOptimizerResults
+from src.wrath_and_glory_xp_optimizer.character_properties import Tier, IntBounds, Attributes, Skills, Traits
+from src.wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer, is_valid_target_values_dict
+from src.wrath_and_glory_xp_optimizer.optimizer_results import CharacterPropertyResults, XPCost, AttributeSkillOptimizerResults
 
 
 @dataclass
@@ -106,7 +106,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
 
     def test_markdown_table_formatting_expect_match_to_stored_table(self):
         # noinspection PyPep8Naming
-        EXPECTED_RESULTS_FILE_NAME = "TestChar_ExpectedResults"
+        EXPECTED_RESULTS_FILE_NAME = "example_target_values_expected_results"
         selection = IntendedSelection(tier=3,
                                       target_values={"Agility": 5,
                                                      "BallisticSkill": 11,

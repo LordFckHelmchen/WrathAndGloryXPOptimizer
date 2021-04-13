@@ -28,6 +28,10 @@ class IntBounds:
     def __contains__(self, item: int) -> bool:
         return self.min <= item <= self.max
 
+    def __iter__(self):
+        yield self.min
+        yield self.max
+
     def as_range(self) -> range:
         return range(self.min, self.max + 1)
 

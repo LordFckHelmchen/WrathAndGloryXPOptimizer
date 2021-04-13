@@ -1,0 +1,26 @@
+[tool.poetry]
+authors = ["D. J. Mack <dj_mack@gmx.de>"]
+description = "A tool to optimize the spent xp on a character for the Wrath & Glory RPG."
+homepage = "https://github.com/LordFckHelmchen/WrathAndGloryXPOptimizer"
+keywords = ["rpg", "rpg-tool",  "wrathandglory", "optimization", "mixed-integer non-linear programming", "minlp", "gekko"]
+license = "MIT"
+name = "wrath_and_glory_xp_optimizer"
+readme = "README.md"
+repository = "https://github.com/LordFckHelmchen/WrathAndGloryXPOptimizer"
+version = "2.0.0"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+gekko = "^0.2.8"
+numpy = "^1.20.2"
+click = "^7.1.2"
+Flask = "^1.1.2"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+xp-optimizer = "wrath_and_glory_xp_optimizer.xp_optimizer:main"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]

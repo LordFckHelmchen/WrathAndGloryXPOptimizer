@@ -1,5 +1,3 @@
-__version__ = 1.5
-
 import argparse
 import json
 import os

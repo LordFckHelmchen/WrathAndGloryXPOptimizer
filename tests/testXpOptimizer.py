@@ -3,9 +3,9 @@ import unittest
 from dataclasses import dataclass
 from typing import Dict
 
-from characterProperties import Tier, IntBounds, Attributes, Skills, Traits
-from xpOptimizer import AttributeSkillOptimizer, is_valid_target_values_dict
-from xpOptimizerResults import CharacterPropertyResults, XPCost, AttributeSkillOptimizerResults
+from src.wrath_and_glory_xp_optimizer.characterProperties import Tier, IntBounds, Attributes, Skills, Traits
+from src.wrath_and_glory_xp_optimizer.xpOptimizer import AttributeSkillOptimizer, is_valid_target_values_dict
+from src.wrath_and_glory_xp_optimizer.xpOptimizerResults import CharacterPropertyResults, XPCost, AttributeSkillOptimizerResults
 
 
 @dataclass

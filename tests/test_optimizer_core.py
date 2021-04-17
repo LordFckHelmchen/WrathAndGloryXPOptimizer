@@ -1,11 +1,10 @@
-import json
 import unittest
 from dataclasses import dataclass
 from typing import Dict
 
 from src.wrath_and_glory_xp_optimizer.character_properties import Tier, IntBounds, Attributes, Skills, Traits
 from src.wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer, is_valid_target_values_dict
-from src.wrath_and_glory_xp_optimizer.optimizer_results import CharacterPropertyResults, XPCost, AttributeSkillOptimizerResults
+from src.wrath_and_glory_xp_optimizer.optimizer_results import XPCost, AttributeSkillOptimizerResults
 
 
 @dataclass
@@ -15,41 +14,12 @@ class IntendedSelection:
     expected_xp_cost: XPCost
 
 
-class TestPropertyResults(unittest.TestCase):
-    def test_missed_getter_expect_name_of_missed_value_if_total_is_smaller_than_target(self):
-        value_name = 'val2'
-        target_value = 3
-        total_value = target_value - 1
-        result = CharacterPropertyResults(total_values={value_name: total_value},
-                                          target_values={value_name: target_value})
-        self.assertEqual([value_name], result.Missed)
-
-    def test_missed_getter_expect_empty_if_total_is_equal_or_larger_than_target(self):
-        value_name = 'val2'
-        target_value = 3
-        for total_value in [target_value, target_value + 1]:
-            result = CharacterPropertyResults(total_values={value_name: total_value},
-                                              target_values={value_name: target_value})
-            self.assertFalse(any(result.Missed), f"Unexpected missed values found: {result.Missed}")
-
-
-class TestXPCost(unittest.TestCase):
-    def test_Total_setter_expect_IOError_if_sum_is_incorrect(self):
-        attribute_costs = 1
-        skill_costs = 2
-        total_costs = attribute_costs + skill_costs
-        self.assertEqual(total_costs, XPCost(attribute_costs, skill_costs, total_costs).Total)
-        self.assertEqual(total_costs, XPCost(attribute_costs, skill_costs).Total)  # Should not throw
-        with self.assertRaises(IOError):
-            XPCost(attribute_costs, skill_costs, total_costs + 1)
-
-
 class TestAttributeSkillOptimizer(unittest.TestCase):
     def run_positive_tests_on_optimized_selection(self, selection: IntendedSelection) -> AttributeSkillOptimizerResults:
         optimizer = AttributeSkillOptimizer(tier=selection.tier)
         result = optimizer.optimize_selection(target_values=selection.target_values)
 
-        self.maxDiff = None
+        self.maxDiff = None  # Show diff for long comparisons.
         for property_name in ['Attributes', 'Skills', 'Traits']:
             missed_targets = result.__getattribute__(property_name).Missed
             self.assertFalse(any(missed_targets),
@@ -104,30 +74,6 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
         self.assertDictEqual(expected_skill_totals, result.Skills.Total)
         self.assertEqual(expected_xp_costs, result.XPCost)
 
-    def test_markdown_table_formatting_expect_match_to_stored_table(self):
-        # noinspection PyPep8Naming
-        EXPECTED_RESULTS_FILE_NAME = "example_target_values_expected_results"
-        selection = IntendedSelection(tier=3,
-                                      target_values={"Agility": 5,
-                                                     "BallisticSkill": 11,
-                                                     "Cunning": 7,
-                                                     "Deception": 8,
-                                                     "Stealth": 13,
-                                                     "Defence": 6,
-                                                     "MaxWounds": 10},
-                                      expected_xp_cost=XPCost(attribute_costs=190, skill_costs=116))
-        result = self.run_positive_tests_on_optimized_selection(selection)
-
-        for extension, formatter in zip(["md", "json"], [lambda x: str(x), lambda x: json.dumps(dict(x), indent=2)]):
-            expected_results_file_name = f"{EXPECTED_RESULTS_FILE_NAME}.{extension}"
-            with open(expected_results_file_name, "r") as expected_results_file:
-                expected_results = expected_results_file.read()
-                self.assertEqual(expected_results, formatter(result))
-
-            # Use this to re-create the files on updates of the format.
-            # with open(expected_results_file_name, "w") as expected_results_file:
-            #     expected_results_file.write(formatter(result))
-
 
 class TestIsValidTargetValuesDict(unittest.TestCase):
     @staticmethod
@@ -179,6 +125,8 @@ class TestIsValidTargetValuesDict(unittest.TestCase):
 
     def test_non_string_key_dict_expect_False(self):
         target_values = TestIsValidTargetValuesDict.get_minimal_valid_target_values()
+        # Also test a non-string key.
+        # noinspection PyTypeChecker
         target_values[5] = 1
         self.assert_is_invalid_target_values_dict(target_values)
 

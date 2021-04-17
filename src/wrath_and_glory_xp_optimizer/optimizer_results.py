@@ -1,3 +1,4 @@
+import json
 from typing import Dict, List, Optional
 
 
@@ -147,9 +148,33 @@ class AttributeSkillOptimizerResults:
 
     def __str__(self):
         """
-        Creates a markdown string-representation of the object.
+        Creates a Markdown-table representation of the object.
         """
         as_string = ""
         for attr_name, _ in self:
             as_string += f"\n## {attr_name}\n{getattr(self, attr_name)}\n"
         return as_string
+
+    def as_markdown(self) -> str:
+        """
+        Creates a string with the Markdown-table representation of the results.
+        Returns
+        -------
+        result_str
+        """
+        return str(self)
+
+    def as_json(self, indent: Optional[int] = 2) -> str:
+        """
+        Creates a JSON string with the results.
+
+        Parameters
+        ----------
+        indent
+            The indent used for the JSON dump call (see json.dumps).
+
+        Returns
+        -------
+        result_str
+        """
+        return json.dumps(dict(self), indent=indent)

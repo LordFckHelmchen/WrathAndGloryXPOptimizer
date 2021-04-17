@@ -22,179 +22,41 @@ The optimizer is written for the core ruleset v2.1. It does not take into accoun
 - Try, if it works (shows help content)
 
    ```Bash
-   python optimizer_core.py -h
+   python3 optimize-xp --help
    ```
   
 ## Usage
 
-**NOTE**: You always have to specify the *tier* of your character!
+### NOTES
 
-The optimizer takes the tree-of-learning rule into account, but assigns the skill ratings randomly (within the min-xp constraint). Simply move the 1s around to your liking - the xp cost stay the same.
+- You always have to specify the *tier* of your character!
+- The optimizer takes the tree-of-learning rule into account, but assigns the skill ratings randomly (within the min-xp constraint). Simply move the 1s around to your liking - the xp cost stay the same.
 
-### Purely via command-line arguments
+### Via command-line interface (CLI)
 
-For few target properties it is best to use the command-line arguments, e.g. if you want to optimize your *tier* 1 character with *Strength* 3 and *Max Wounds* 5, type:
+The CLI takes a JSON file as input with the your tier and the target values you want to optimize (see tests/example_file.json for an example).
 
-```Bash
-python optimizer_core.py --tier 1 --Strength 3 --MaxWounds 5
-```
+Let's say you want to optimize your *Tier* 1 character with *Strength* 3 and *Max Wounds* 5, the create a file (e.g. `my_file.json`) with the following content:
 
-which will output the following markdown table:
-
-```Markdown
-## Tier
-1
-
-## Attributes
-Name       | Total  | Target | Missed
----------- | ------ | ------ | ------
-Agility    | 1      | -      | -     
-Fellowship | 1      | -      | -     
-Initiative | 1      | -      | -     
-Intellect  | 1      | -      | -     
-Strength   | 3      | 3      | NO    
-Toughness  | 3      | -      | -     
-Willpower  | 1      | -      | -     
-
-## Skills
-Name           | Rating | Total  | Target | Missed
--------------- | ------ | ------ | ------ | ------
-Athletics      | 0      | 3      | -      | -     
-Awareness      | 0      | 1      | -      | -     
-BallisticSkill | 0      | 1      | -      | -     
-Cunning        | 0      | 1      | -      | -     
-Deception      | 0      | 1      | -      | -     
-Insight        | 0      | 1      | -      | -     
-Intimidation   | 0      | 1      | -      | -     
-Investigation  | 0      | 1      | -      | -     
-Leadership     | 0      | 1      | -      | -     
-Medicae        | 0      | 1      | -      | -     
-Persuasion     | 0      | 1      | -      | -     
-Pilot          | 0      | 1      | -      | -     
-PsychicMastery | 0      | 1      | -      | -     
-Scholar        | 0      | 1      | -      | -     
-Stealth        | 0      | 1      | -      | -     
-Survival       | 0      | 1      | -      | -     
-Tech           | 0      | 1      | -      | -     
-WeaponSkill    | 0      | 1      | -      | -     
-
-## Traits
-Name          | Total  | Target | Missed
-------------- | ------ | ------ | ------
-Conviction    | 1      | -      | -     
-Defence       | 0      | -      | -     
-Determination | 3      | -      | -     
-Influence     | 0      | -      | -     
-MaxShock      | 2      | -      | -     
-MaxWounds     | 5      | 5      | NO    
-Resilience    | 4      | -      | -     
-Resolve       | 0      | -      | -     
-
-## XPCost
-Name       | Cost
----------- | ----
-Attributes | 20  
-Skills     | 0   
-Total      | 20
-```
-
-If you prefer json instead of markdown, use the `--return_json` flag:
-
-```Bash
-python optimizer_core.py --tier 1 --Strength 3 --MaxWounds 5 --return_json
-```
-
-which will create:
-
-```JSON
+```json
 {
   "Tier": 1,
-  "Attributes": {
-    "Total": {
-      "Agility": 1,
-      "Fellowship": 1,
-      "Initiative": 1,
-      "Intellect": 1,
-      "Strength": 3,
-      "Toughness": 3,
-      "Willpower": 1
-    },
-    "Target": {
-      "Strength": 3
-    },
-    "Missed": []
-  },
-  "Skills": {
-    "Rating": {
-      "Athletics": 0,
-      "Awareness": 0,
-      "BallisticSkill": 0,
-      "Cunning": 0,
-      "Deception": 0,
-      "Insight": 0,
-      "Intimidation": 0,
-      "Investigation": 0,
-      "Leadership": 0,
-      "Medicae": 0,
-      "Persuasion": 0,
-      "Pilot": 0,
-      "PsychicMastery": 0,
-      "Scholar": 0,
-      "Stealth": 0,
-      "Survival": 0,
-      "Tech": 0,
-      "WeaponSkill": 0
-    },
-    "Total": {
-      "Athletics": 3,
-      "Awareness": 1,
-      "BallisticSkill": 1,
-      "Cunning": 1,
-      "Deception": 1,
-      "Insight": 1,
-      "Intimidation": 1,
-      "Investigation": 1,
-      "Leadership": 1,
-      "Medicae": 1,
-      "Persuasion": 1,
-      "Pilot": 1,
-      "PsychicMastery": 1,
-      "Scholar": 1,
-      "Stealth": 1,
-      "Survival": 1,
-      "Tech": 1,
-      "WeaponSkill": 1
-    },
-    "Target": {},
-    "Missed": []
-  },
-  "Traits": {
-    "Total": {
-      "Conviction": 1,
-      "Defence": 0,
-      "Determination": 3,
-      "Influence": 0,
-      "MaxShock": 2,
-      "MaxWounds": 5,
-      "Resilience": 4,
-      "Resolve": 0
-    },
-    "Target": {
-      "MaxWounds": 5
-    },
-    "Missed": []
-  },
-  "XPCost": {
-    "Attributes": 20,
-    "Skills": 0,
-    "Total": 20
-  }
+  "Strength": 3,
+  "MaxWounds": 5
 }
 ```
 
-### File-based input via command-line
+Then run the following command from the same folder as the file:
 
-If you have several properties you want to set, or simple want to keep single file for your character, use the json-file with the `--file` command-line argument. The json file is a simple flat json with at least the *tier* field.  For example if you want to optimize your *tier* 3 character with
+```Bash
+python optimize-xp my_file.json
+```
+
+which will output a markdown table showing the different propreties and their (total) ratings and the spent XP.
+
+#### A more complex example
+
+If you have a higher-level character and want to optimize the following properties at *Tier* 3
 
 - *Agility* 5
 - *BallisticSkill* 11
@@ -204,9 +66,9 @@ If you have several properties you want to set, or simple want to keep single fi
 - *Defence* 6 (note the British spelling!)
 - *Max Wounds* 10
 
-then create a file (e.g. `example_target_values.json`) with the following content:
+then create a file (e.g. `my_file.json`) with the following content:
 
-```JSON
+```json
 {
   "Tier": 3,
   "Agility": 5,
@@ -219,10 +81,16 @@ then create a file (e.g. `example_target_values.json`) with the following conten
 }
 ```
 
-then call (assuming the file is in the same folder as the optimizer script):
+This time you'd like to have a json file as output. Then call:
 
 ```Bash
-python optimizer_core.py --file example_target_values.json
+python optimize-xp my_file.json --output-format json
+```
+
+For a list of available CLI parameters use:
+
+```Bash
+python optimize-xp --help
 ```
 
 ---
@@ -555,3 +423,44 @@ $$
     \end{matrix}
     \right)
 $$
+
+---
+
+## Requirements
+
+### User requirements
+
+#### General (GEN)
+
+1. As a user I want a tool to optimize the XP cost for a given set of attributes, skills and traits.
+2. As a user I want the optimized distribution to meet or exceed the point values for the given set.
+3. As a user I want the XP cost of the optimized point values to be equal or lower than my current cost.
+4. As a user I want all skill ratings that have to be added due to the "Tree-of-Learning"-constraint to be selectable.
+5. As a user I want all skill ratings that have to be added due to the "Tree-of-Learning"-constraint to be chosen such they result in the highest possible total rating for the added skill ratings.
+6. As a simple user I want my species-/archetype-specific prerequisites to be automatically met.
+7. As an advanced user I want to be able to specify either the attribute/skill rating or its according total value to be the target for optimization (e.g. Deception rating vs. Deception total rating = Deception rating + Fellowship rating).
+8. As a user I want the optimization to be fully integrated into the workflow of Doctors-of-Doom, automatically suggesting an optimized distribution upon changing the point distribution.
+
+#### Deployment (DEP)
+
+1. As a simple user I don't want to install/use an extra tool, but want an integrated workflow with Doctors-of-Doom.
+2. As an advanced user I'm able to install a tool using a simple installer on my current OS.
+3. As an expert user I'm able to install a tool using the command line and standard Python workflows.
+
+#### UI (UI)
+
+1. As a simple user I want to use the web-UI of Doctors-of-Doom.
+2. As an advanced user I'm willing to use a separate tool with a GUI.
+3. As an expert user I'm willing to use a CLI.
+
+### Non-functional requirements (NFR)
+
+1. Unit-test coverage is 100%.
+2. CI/CD pipeline builds unit-tests & uses code analyzers on each pushed commit.
+3. Project structure should follow existing templates.
+4. Environments should be managed with standard tools.
+5. Project follows PEP8 conventions.
+6. Project has 0 code analyzer errors.
+7. Project treats analyzer warnings as errors.
+8. CI/CD pipeline rejects PRs if coverage is too low or analyzer problems exists.
+9. All functions are documented.

@@ -1,13 +1,11 @@
-import argparse
 import json
-import os
 from typing import Optional, Dict, Union, List, Tuple, Type
 
 import numpy as np
 from gekko import GEKKO
 
-from .character_properties import Tier, Attributes, Skills, Traits, IntBounds
-from .optimizer_results import CharacterPropertyResults, SkillResults, XPCost, AttributeSkillOptimizerResults
+from .character_properties import Attributes, Skills,  Tier, Traits
+from .optimizer_results import AttributeSkillOptimizerResults, CharacterPropertyResults, SkillResults, XPCost
 
 
 class GekkoContext:
@@ -161,9 +159,18 @@ class AttributeSkillOptimizer:
 
 def optimize_xp(target_values: Dict[str, int], is_verbose: bool = False) -> AttributeSkillOptimizerResults:
     """
-    :param target_values: A dictionary containing key-value pairs for 'Tier' and the attributes, skills & traits.
-    :param is_verbose: Flag to show detailed solver output.
-    :return: The attributes, skills & traits. Either as Markdown table or as JSON string.
+    Parameters
+    ----------
+    target_values
+        A dictionary containing key-value pairs for 'Tier' and the attributes, skills & traits.
+    is_verbose
+        Flag to show detailed solver output.
+
+    Returns
+    -------
+    optimized_results
+        The attributes, skills & traits. Either as Markdown table or as JSON string.
+
     """
     tier = target_values.pop('Tier', None)
     if tier is None:
@@ -173,6 +180,21 @@ def optimize_xp(target_values: Dict[str, int], is_verbose: bool = False) -> Attr
 
 
 def is_valid_target_values_dict(target_values: Dict[str, int]) -> bool:
+    """
+    Checks if the given dictionary adheres to the expected format, e.g. contains the required parameters and each value
+    is within its specified bounds.
+
+    Parameters
+    ----------
+    target_values
+        The dictionary to check.
+
+    Returns
+    -------
+    is_valid
+        True if all checks passed, False otherwise.
+
+    """
     tier = target_values.get(Tier.full_name)
     if not Tier.is_valid_rating(tier):
         return False
@@ -183,57 +205,5 @@ def is_valid_target_values_dict(target_values: Dict[str, int]) -> bool:
                 or Skills.get_by_name(target_name).value.is_valid_total_rating(target_value)
                 or Traits.get_by_name(target_name).value.is_valid_rating(target_value, tier)):
             return False
+
     return True
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description=f"XP Optimizer for Wrath & Glory v{AttributeSkillOptimizer.WRATH_AND_GLORY_CORE_RULES_VERSION}. "
-                    f"Target values can be given for each attribute and skill and for most traits (e.g. conviction, "
-                    f"max. wounds, ...). The function will try to optimize the spent XP, e.g. optimally increase "
-                    f"attributes & skills with a min. amount of xp.",
-        add_help=True)
-    parser.add_argument('-f', '--file',
-                        type=str,
-                        help='A json file with the name-value pairs for the target values (see other input arguments '
-                             'for names & value ranges). The file MUST contain the tier value. If the file is '
-                             'specified, duplicate command line parameters take precedence.')
-    parser.add_argument('-j', '--return_json',
-                        action='store_true',
-                        help='If enabled, prints the result as JSON string instead of as Markdown table (default).')
-    parser.add_argument('-v', '--verbose',
-                        action='store_true',
-                        help='If enabled, shows diagnostic output of the solver.')
-    parser.add_argument('--Tier',
-                        type=int,
-                        choices=Tier.rating_bounds.as_range(),
-                        help='The tier of the character.')
-
-    # Add optional inputs for each attribute, skill & trait
-    for target_enum_class in [Attributes, Skills]:
-        for target_enum in target_enum_class.get_valid_members():
-            parser.add_argument(f'--{target_enum.name}', type=int, choices=target_enum.value.rating_bounds.as_range())
-    for trait in Traits.get_valid_members():
-        rating_bounds = IntBounds(trait.value.get_rating_bounds(related_tier=Tier.rating_bounds.min).min,
-                                  trait.value.get_rating_bounds(related_tier=Tier.rating_bounds.max).max)
-        parser.add_argument(f'--{trait.name}', type=int, choices=rating_bounds.as_range())
-
-    input_arguments = vars(parser.parse_args())
-
-    # Input values from file...
-    input_target_values = dict()
-    if input_arguments['file'] is not None:
-        if not os.path.isfile(input_arguments['file']):
-            raise FileNotFoundError(f"For argument '--file {input_arguments['file']}'")
-        with open(input_arguments['file'], 'r') as file:
-            input_target_values = json.load(file)
-    # ...and directly via command line parameters (supersede file-based values).
-    for target_enum_class in [Attributes, Skills, Traits]:
-        input_target_values.update({target_enum.name: input_arguments[target_enum.name]
-                                    for target_enum in target_enum_class.get_valid_members()
-                                    if input_arguments.get(target_enum.name) is not None})
-    if input_arguments['Tier'] is not None:
-        input_target_values['Tier'] = input_arguments['Tier']
-
-    optimizer_result = optimize_xp(input_target_values, is_verbose=input_arguments['verbose'])
-    print(json.dumps(dict(optimizer_result), indent=2) if input_arguments['return_json'] else str(optimizer_result))

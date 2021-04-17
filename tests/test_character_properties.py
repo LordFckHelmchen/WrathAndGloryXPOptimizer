@@ -1,6 +1,7 @@
 import unittest
 
 from src.wrath_and_glory_xp_optimizer.character_properties import IntBounds
+from wrath_and_glory_xp_optimizer.optimizer_results import XPCost
 
 
 class TestIntBounds(unittest.TestCase):
@@ -11,7 +12,7 @@ class TestIntBounds(unittest.TestCase):
 
     def test_values_outside_bounds_expect_contains_is_false(self):
         bounds = IntBounds(-8, 12)
-        for val in  [bounds.min - 1, bounds.max + 1]:
+        for val in [bounds.min - 1, bounds.max + 1]:
             self.assertFalse(bounds.min - 1 in bounds, f"Out-of-bound value was not identified: {val} not in {bounds}!")
 
     def test_as_range_expect_bounds_to_be_met(self):
@@ -43,6 +44,17 @@ class TestIntBounds(unittest.TestCase):
         expected_bounds = IntBounds(min_val + add_bounds.min, max_val + add_bounds.max)
         observed_bounds = IntBounds(min_val, max_val) + add_bounds
         self.assertEqual(expected_bounds, observed_bounds)
+
+
+class TestXPCost(unittest.TestCase):
+    def test_Total_setter_expect_IOError_if_sum_is_incorrect(self):
+        attribute_costs = 1
+        skill_costs = 2
+        total_costs = attribute_costs + skill_costs
+        self.assertEqual(total_costs, XPCost(attribute_costs, skill_costs, total_costs).Total)
+        self.assertEqual(total_costs, XPCost(attribute_costs, skill_costs).Total)  # Should not throw
+        with self.assertRaises(IOError):
+            XPCost(attribute_costs, skill_costs, total_costs + 1)
 
 
 if __name__ == '__main__':

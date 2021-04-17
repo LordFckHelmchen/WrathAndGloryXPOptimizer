@@ -32,6 +32,9 @@ class IntBounds:
         yield self.min
         yield self.max
 
+    def __str__(self):
+        return self.__repr__().replace(IntBounds.__name__, "Integer ")
+
     def as_range(self) -> range:
         return range(self.min, self.max + 1)
 

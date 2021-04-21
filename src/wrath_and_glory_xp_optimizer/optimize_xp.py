@@ -7,6 +7,7 @@ from typing import TextIO
 import click
 from wrath_and_glory_xp_optimizer import __version__
 from wrath_and_glory_xp_optimizer.character_properties import Attributes, IntBounds, Skills, Tier, Traits
+from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
 from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer, optimize_xp
 
 
@@ -76,8 +77,11 @@ def cli(file: TextIO, output_format: str, is_verbose: bool):
     if is_verbose:
         click.echo(f"optimizer-xp(file='{file.name}', output_format='{output_format}', is_verbose={is_verbose})\n")
 
-    optimizer_result = optimize_xp(json.load(file), is_verbose=is_verbose)
-    click.echo(optimizer_result.as_json() if output_format == "json" else optimizer_result.as_markdown())
+    try:
+        optimizer_result = optimize_xp(json.load(file), is_verbose=is_verbose)
+        click.echo(optimizer_result.as_json() if output_format == "json" else optimizer_result.as_markdown())
+    except InvalidTargetValueException as error:
+        raise click.ClickException(str(error))
 
 
 if __name__ == '__main__':  # pragma: no cover

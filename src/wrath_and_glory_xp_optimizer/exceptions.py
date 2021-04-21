@@ -4,7 +4,3 @@ class WrathAndGloryOptimizerException(Exception):
 
 class InvalidTargetValueException(WrathAndGloryOptimizerException):
     pass
-
-
-class XPCostMismatchException(WrathAndGloryOptimizerException):
-    pass

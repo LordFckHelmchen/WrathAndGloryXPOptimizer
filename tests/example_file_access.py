@@ -61,15 +61,13 @@ def get_example_data() -> Dict[str, dict]:
     return {"target_values": load_target_values(), "expected_results": access_expected_result_files(access_function)}
 
 
-def create_expected_results() -> None:
+def create_expected_results() -> None:  # pragma: nocover
     """
     This function creates the expected-results files for the example file. Useful in case of updates of the format.
     """
     from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer
 
-    target_values = load_target_values()
-    optimizer = AttributeSkillOptimizer(tier=target_values.pop("Tier"))
-    result = optimizer.optimize_selection(target_values=target_values)
+    result = AttributeSkillOptimizer(load_target_values()).optimize_selection()
 
     def access_function(file: TextIO) -> Any:
         extension = Path(file.name).suffix.lower()
@@ -83,5 +81,5 @@ def create_expected_results() -> None:
     access_expected_result_files(access_function, mode="w")
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: nocover
     create_expected_results()

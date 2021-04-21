@@ -5,5 +5,8 @@
 __pycache__/
 venv/
 
+# Unittests
+.coverage
+
 # Other
 XPOptimizer*.ods

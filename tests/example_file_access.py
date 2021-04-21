@@ -1,14 +1,10 @@
 import json
 from pathlib import Path
-from typing import Dict, Callable, TextIO, Any
+from typing import Any, Callable, Dict, TextIO
 
-EXAMPLE_FILE = Path("example_file.json")
+EXAMPLE_FILE = Path("tests/example_file.json")
 EXPECTED_RESULTS_SUFFIX = "_expected_results"
 EXPECTED_RESULTS_EXTENSIONS = ["md", "json"]
-
-
-class UnknownFileExtension(Exception):
-    pass
 
 
 def access_expected_result_files(access_function: Callable[[TextIO], Any], mode="r") -> Dict[str, Any]:

@@ -41,7 +41,3 @@ class TestOptimizeXpCLI(unittest.TestCase):
         for arg in ["--help", "--help-target-values", "--version"]:
             with self.subTest(i=arg):
                 self.assert_valid_exit_code(runner.invoke(cli, [arg]))
-
-
-if __name__ == '__main__':
-    unittest.main()

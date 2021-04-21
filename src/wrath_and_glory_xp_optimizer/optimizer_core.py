@@ -4,7 +4,8 @@ from typing import Optional, Dict, Union, List, Tuple, Type
 import numpy as np
 from gekko import GEKKO
 
-from .character_properties import Attributes, Skills,  Tier, Traits
+from .character_properties import Attributes, Skills, Tier, Traits
+from .exceptions import InvalidTargetValueException, XPCostMismatchException
 from .optimizer_results import AttributeSkillOptimizerResults, CharacterPropertyResults, SkillResults, XPCost
 
 
@@ -34,9 +35,17 @@ class AttributeSkillOptimizer:
                  tier: int = 1,
                  is_verbose: bool = False,
                  solver_options: Tuple[str] = DEFAULT_SOLVER_OPTIONS):
-        if not Tier.is_valid_rating(tier):
-            raise IOError(f"'tier' must be within {Tier.rating_bounds}, was {tier} instead.")
-        self.tier: int = tier
+        """
+        Parameters
+        ----------
+        tier
+            The tier of the character. If this is outside the valid bounds, it will be clipped to the min/max.
+        is_verbose
+            If to show additional solver output.
+        solver_options
+            Options passed to the Gekko class.
+        """
+        self.tier: int = Tier.rating_bounds.clip(tier)
         self.solver_id = 1  # Use APOPT to find the optimal Integer solution, since this is a MINLP.
         self.solver_options = solver_options
         self.is_verbose: bool = is_verbose
@@ -48,9 +57,9 @@ class AttributeSkillOptimizer:
         This was done with the help of John Hedengren from Gekko (see https://stackoverflow.com/questions/65863807)
         """
         if not is_valid_target_values_dict({Tier.full_name: self.tier, **target_values}):
-            raise IOError(f"Invalid target values found: \n{json.dumps(target_values, indent=2)}")
+            raise InvalidTargetValueException(f"Invalid target value(s) found: \n{json.dumps(target_values, indent=2)}")
 
-        with GekkoContext(remote=False) as solver:
+        with managed_gekko_solver(remote=False) as solver:
             # Define variables with optimized initial values.
             attribute_ratings = [solver.Var(name=attribute.name,
                                             value=target_values.get(attribute.name,
@@ -119,9 +128,14 @@ class AttributeSkillOptimizer:
             result.Traits = self._get_property_result(Traits,
                                                       attribute_ratings + skill_ratings,
                                                       target_values)
-            result.XPCost = XPCost(attribute_costs=int(attribute_cost.VALUE.value[0]),
-                                   skill_costs=int(skill_cost.VALUE.value[0]),
-                                   total_costs=int(solver.options.objfcnval))
+            result.XPCost = XPCost(Attributes=int(attribute_cost.VALUE.value[0]),
+                                   Skills=int(skill_cost.VALUE.value[0]))
+
+            total_cost = int(solver.options.objfcnval)
+            if total_cost != result.XPCost.Total:
+                raise XPCostMismatchException(f"Total XP cost didn't sum up from Attribute & Skill costs: "
+                                              f"{total_cost} != {result.XPCost.Attributes} + {result.XPCost.Skills}")
+
             return result
 
     @staticmethod
@@ -162,7 +176,8 @@ def optimize_xp(target_values: Dict[str, int], is_verbose: bool = False) -> Attr
     Parameters
     ----------
     target_values
-        A dictionary containing key-value pairs for 'Tier' and the attributes, skills & traits.
+        A dictionary containing key-value pairs for 'Tier' and the attributes, skills & traits. If Tier is missing, the
+        default value of 1 is used.
     is_verbose
         Flag to show detailed solver output.
 
@@ -172,9 +187,7 @@ def optimize_xp(target_values: Dict[str, int], is_verbose: bool = False) -> Attr
         The attributes, skills & traits. Either as Markdown table or as JSON string.
 
     """
-    tier = target_values.pop('Tier', None)
-    if tier is None:
-        raise IOError("'Tier' is a mandatory parameter!")
+    tier = target_values.pop('Tier', 1)
     optimizer = AttributeSkillOptimizer(tier=tier, is_verbose=is_verbose)
     return optimizer.optimize_selection(target_values=target_values)
 

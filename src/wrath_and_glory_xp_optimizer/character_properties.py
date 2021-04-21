@@ -17,13 +17,11 @@ class IntBounds:
     def __add__(self, other):
         if isinstance(other, int):
             other = IntBounds(other, other)
-        elif isinstance(other, list):
-            other = IntBounds(*other)
 
         if isinstance(other, IntBounds):
             return IntBounds(min=self.min + other.min, max=self.max + other.max)
 
-        raise NotImplementedError()
+        raise TypeError(f"Unsupported operand type(s) for +: '{type(self).__name__}' and '{type(other).__name__}'")
 
     def __contains__(self, item: int) -> bool:
         return self.min <= item <= self.max
@@ -35,8 +33,27 @@ class IntBounds:
     def __str__(self):
         return self.__repr__().replace(IntBounds.__name__, "Integer ")
 
+    def __len__(self):
+        return 2
+
     def as_range(self) -> range:
         return range(self.min, self.max + 1)
+
+    def clip(self, number: int) -> int:
+        """
+        Clips a given number to the range. E.g. this function assures that min <= number <= max.
+
+        Parameters
+        ----------
+        number
+            The number to clip.
+
+        Returns
+        -------
+        clipped_number
+            The clipped number.
+        """
+        return max(self.min, min(number, self.max))
 
 
 @dataclass(frozen=True)
@@ -75,7 +92,7 @@ class Attribute(BaseProperty):
 @dataclass(frozen=True)
 class InvalidAttribute(Attribute):
     full_name: ClassVar[str] = "INVALID"
-    rating_bounds: ClassVar[IntBounds] = IntBounds(0, 0)
+    rating_bounds: ClassVar[IntBounds] = IntBounds(*[Attribute.rating_bounds.min - 1] * 2)
     short_name: ClassVar[str] = "N/A"
 
     def is_valid_rating(self, rating) -> bool:
@@ -118,7 +135,7 @@ class Skill(BaseProperty):
 @dataclass(frozen=True)
 class InvalidSkill(Skill):
     full_name: ClassVar[str] = "INVALID"
-    rating_bounds: ClassVar[IntBounds] = IntBounds(0, 0)
+    rating_bounds: ClassVar[IntBounds] = IntBounds(*[Skill.rating_bounds.min - 1] * 2)
     related_attribute: ClassVar[Attributes] = Attributes.INVALID
 
     @property

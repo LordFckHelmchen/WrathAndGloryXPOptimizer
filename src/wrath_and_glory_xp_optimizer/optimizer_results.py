@@ -1,13 +1,12 @@
 import json
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 
+@dataclass()
 class CharacterPropertyResults:
-    def __init__(self,
-                 total_values: Dict[str, int] = None,
-                 target_values: Dict[str, int] = None):
-        self.Total: Dict[str, int] = total_values if total_values is not None else dict()
-        self.Target: Dict[str, int] = target_values if target_values is not None else dict()
+    Total: Dict[str, int] = field(default_factory=dict)
+    Target: Dict[str, int] = field(default_factory=dict)
 
     def __iter__(self) -> dict:
         yield 'Total', self.Total
@@ -15,8 +14,19 @@ class CharacterPropertyResults:
         yield 'Missed', self.Missed
 
     def __str__(self):
+        return self.as_markdown()
+
+    @property
+    def Missed(self) -> List[str]:
+        return [target for target, target_value in self.Target.items() if
+                target in self.Total and self.Total[target] < target_value]
+
+    def as_markdown(self) -> str:
         """
-        Creates a markdown-table string representation of the object.
+        Creates a string with the Markdown-table representation of the results.
+        Returns
+        -------
+        as_string
         """
         name_width = max(len('Name'), max(len(name) for name in self.Total))
         max_value_header_width = max(len(header_name) for header_name, _ in self)
@@ -52,14 +62,6 @@ class CharacterPropertyResults:
 
         return as_string
 
-    def __repr__(self):
-        return str(dict(self))
-
-    @property
-    def Missed(self) -> List[str]:
-        return [target for target, target_value in self.Target.items() if
-                target in self.Total and self.Total[target] < target_value]
-
 
 class SkillResults(CharacterPropertyResults):
     def __init__(self,
@@ -75,19 +77,10 @@ class SkillResults(CharacterPropertyResults):
             yield d
 
 
+@dataclass()
 class XPCost:
-    def __init__(self,
-                 attribute_costs: int = 0,
-                 skill_costs: int = 0,
-                 total_costs: Optional[int] = None):
-        self.Attributes: int = attribute_costs
-        self.Skills: int = skill_costs
-        if total_costs is not None and self.Attributes + self.Skills != total_costs:
-            raise IOError(f"Total XP cost didn't sum up from Attribute & Skill costs: {self.Attributes} != "
-                          f"{self.Skills} + {total_costs}")
-
-    def __eq__(self, other):
-        return self.Attributes == other.Attributes and self.Skills == other.Skills
+    Attributes: int = 0
+    Skills: int = 0
 
     @property
     def Total(self):
@@ -99,8 +92,14 @@ class XPCost:
         yield 'Total', self.Total
 
     def __str__(self):
+        return self.as_markdown()
+
+    def as_markdown(self) -> str:
         """
-        Creates a markdown-table string representation of the object.
+        Creates a string with the Markdown-table representation of the results.
+        Returns
+        -------
+        as_string
         """
         name_width = max(len('Name'), max(len(name) for name, _ in self))
         value_width = max(len('Cost'), max(len(str(value)) for _, value in self))
@@ -121,23 +120,14 @@ class XPCost:
 
         return as_string
 
-    def __repr__(self):
-        return str(dict(self))
 
-
+@dataclass
 class AttributeSkillOptimizerResults:
-    def __init__(self,
-                 tier: int = None,
-                 attributes: CharacterPropertyResults = CharacterPropertyResults(),
-                 skills: SkillResults = SkillResults(),
-                 traits: CharacterPropertyResults = CharacterPropertyResults(),
-                 xp_cost: XPCost = XPCost()
-                 ):
-        self.Tier: Optional[int] = tier
-        self.Attributes: CharacterPropertyResults = attributes
-        self.Skills: SkillResults = skills
-        self.Traits: CharacterPropertyResults = traits
-        self.XPCost: XPCost = xp_cost
+    Tier: Optional[int] = None
+    Attributes: CharacterPropertyResults = CharacterPropertyResults()
+    Skills: SkillResults = SkillResults()
+    Traits: CharacterPropertyResults = CharacterPropertyResults()
+    XPCost: XPCost = XPCost()
 
     def __iter__(self) -> dict:
         yield 'Tier', self.Tier
@@ -147,22 +137,19 @@ class AttributeSkillOptimizerResults:
         yield 'XPCost', dict(self.XPCost)
 
     def __str__(self):
-        """
-        Creates a Markdown-table representation of the object.
-        """
-        as_string = ""
-        for attr_name, _ in self:
-            as_string += f"\n## {attr_name}\n{getattr(self, attr_name)}\n"
-        return as_string
+        return self.as_markdown()
 
     def as_markdown(self) -> str:
         """
         Creates a string with the Markdown-table representation of the results.
         Returns
         -------
-        result_str
+        as_string
         """
-        return str(self)
+        as_string = ""
+        for attr_name, _ in self:
+            as_string += f"\n## {attr_name}\n{getattr(self, attr_name)}\n"
+        return as_string
 
     def as_json(self, indent: Optional[int] = 2) -> str:
         """
@@ -175,6 +162,6 @@ class AttributeSkillOptimizerResults:
 
         Returns
         -------
-        result_str
+        as_string
         """
         return json.dumps(dict(self), indent=indent)

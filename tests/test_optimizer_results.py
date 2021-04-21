@@ -11,16 +11,16 @@ class TestPropertyResults(unittest.TestCase):
         value_name = 'val2'
         target_value = 3
         total_value = target_value - 1
-        result = CharacterPropertyResults(total_values={value_name: total_value},
-                                          target_values={value_name: target_value})
+        result = CharacterPropertyResults(Total={value_name: total_value},
+                                          Target={value_name: target_value})
         self.assertEqual([value_name], result.Missed)
 
     def test_missed_getter_expect_empty_if_total_is_equal_or_larger_than_target(self):
         value_name = 'val2'
         target_value = 3
         for total_value in [target_value, target_value + 1]:
-            result = CharacterPropertyResults(total_values={value_name: total_value},
-                                              target_values={value_name: target_value})
+            result = CharacterPropertyResults(Total={value_name: total_value},
+                                              Target={value_name: target_value})
             self.assertFalse(any(result.Missed), f"Unexpected missed values found: {result.Missed}")
 
     def test_formatting_functions_expect_match_to_stored_table(self):
@@ -34,7 +34,3 @@ class TestPropertyResults(unittest.TestCase):
         for extension, formatter in zip(["md", "json"], [lambda x: x.as_markdown(), lambda x: x.as_json()]):
             with self.subTest(i=extension):
                 self.assertEqual(example_data["expected_results"][extension], formatter(result))
-
-
-if __name__ == '__main__':
-    unittest.main()

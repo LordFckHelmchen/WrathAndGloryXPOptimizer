@@ -79,7 +79,3 @@ def cli(file: TextIO, output_format: str, is_verbose: bool):
 
     optimizer_result = optimize_xp(json.load(file), is_verbose=is_verbose)
     click.echo(optimizer_result.as_json() if output_format == "json" else optimizer_result.as_markdown())
-
-
-if __name__ == "__main__":
-    cli()

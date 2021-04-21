@@ -2,9 +2,10 @@ import unittest
 from dataclasses import dataclass
 from typing import Dict
 
-from src.wrath_and_glory_xp_optimizer.character_properties import Tier, IntBounds, Attributes, Skills, Traits
-from src.wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer, is_valid_target_values_dict
-from src.wrath_and_glory_xp_optimizer.optimizer_results import XPCost, AttributeSkillOptimizerResults
+from wrath_and_glory_xp_optimizer.character_properties import Tier, IntBounds, Attributes, Skills, Traits
+from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer, is_valid_target_values_dict
+from wrath_and_glory_xp_optimizer.optimizer_results import XPCost, AttributeSkillOptimizerResults
+from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
 
 
 @dataclass
@@ -36,14 +37,14 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
                                                        "Scholar": 15,
                                                        "Tech": 10,
                                                        "MaxWounds": 7},
-                                        expected_xp_cost=XPCost(attribute_costs=120, skill_costs=80)),
+                                        expected_xp_cost=XPCost(Attributes=120, Skills=80)),
                       IntendedSelection(tier=1,
                                         target_values={"Athletics": 5,
                                                        "Awareness": 3,
                                                        "BallisticSkill": 7,
                                                        "Cunning": 2,
                                                        "Stealth": 10},
-                                        expected_xp_cost=XPCost(attribute_costs=45, skill_costs=50)),
+                                        expected_xp_cost=XPCost(Attributes=45, Skills=50)),
                       IntendedSelection(tier=2,
                                         target_values={"Strength": 5,
                                                        "Toughness": 5,
@@ -51,28 +52,48 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
                                                        "BallisticSkill": 2,
                                                        "Survival": 4,
                                                        "WeaponSkill": 8},
-                                        expected_xp_cost=XPCost(attribute_costs=84, skill_costs=42))]
+                                        expected_xp_cost=XPCost(Attributes=84, Skills=42))]
         for selection_id, selection in enumerate(selections):
             with self.subTest(i=selection_id):
                 self.run_positive_tests_on_optimized_selection(selection)
 
-    def test_optimize_selection_with_no_target_values_expect_0_cost_attributes_at_1_and_skills_at_0(self):
+    def test_optimize_selection_with_no_target_values_expect_tier_1_cost_0_attributes_at_1_and_skills_at_0(self):
         target_values = dict()
         initial_attribute_total = 1
         initial_skill_rating = 0
         expected_attribute_totals = {member.name: initial_attribute_total for member in Attributes.get_valid_members()}
         expected_skill_ratings = {member.name: initial_skill_rating for member in Skills.get_valid_members()}
         expected_skill_totals = {member.name: initial_attribute_total for member in Skills.get_valid_members()}
-        expected_xp_costs = XPCost(attribute_costs=0, skill_costs=0)
+        expected_xp_costs = XPCost(Attributes=0, Skills=0)
 
-        optimizer = AttributeSkillOptimizer(tier=1)
+        optimizer = AttributeSkillOptimizer()
         result = optimizer.optimize_selection(target_values=target_values)
 
         self.maxDiff = None
+        self.assertEqual(1, optimizer.tier)
         self.assertDictEqual(expected_attribute_totals, result.Attributes.Total)
         self.assertDictEqual(expected_skill_ratings, result.Skills.Rating)
         self.assertDictEqual(expected_skill_totals, result.Skills.Total)
         self.assertEqual(expected_xp_costs, result.XPCost)
+
+    def test_optimize_selection_with_invalid_target_values_expect_InvalidTargetValuesException(self):
+        invalid_target_values = {"Tier": 1,
+                                 "Strength": 3,
+                                 "Perception": 1,
+                                 "Endurance": 1,
+                                 "Charisma": 1,
+                                 "Intelligence": 9,
+                                 "Agility": 8,
+                                 "Luck": 1}
+        optimizer = AttributeSkillOptimizer(tier=invalid_target_values["Tier"])
+        with self.assertRaises(InvalidTargetValueException):
+            optimizer.optimize_selection(invalid_target_values)
+
+    def test_init_with_out_of_bounds_tier_expect_clipping_to_closest_bound(self):
+        for expected_tier, bound_offset in zip(list(Tier.rating_bounds), [-1, 1]):
+            with self.subTest(i=f"Tier: {expected_tier + bound_offset}"):
+                optimizer = AttributeSkillOptimizer(tier=expected_tier + bound_offset)
+                self.assertEqual(expected_tier, optimizer.tier)
 
 
 class TestIsValidTargetValuesDict(unittest.TestCase):
@@ -141,7 +162,3 @@ class TestIsValidTargetValuesDict(unittest.TestCase):
     def test_traits_expect_False_for_non_integer_or_out_of_bounds_values(self):
         self.run_invalid_values_test(valid_key=Traits.MaxWounds.name,
                                      value_bounds=Traits.MaxWounds.value.get_rating_bounds(related_tier=1))
-
-
-if __name__ == '__main__':
-    unittest.main()

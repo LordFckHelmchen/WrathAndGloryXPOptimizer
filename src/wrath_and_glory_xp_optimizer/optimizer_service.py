@@ -2,7 +2,7 @@ import json
 import logging.config
 import sys
 
-from flask import Flask, request, abort, Request
+from flask import Flask, Request, abort, request
 
 from . import optimizer_core
 

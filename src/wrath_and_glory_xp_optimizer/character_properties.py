@@ -33,27 +33,8 @@ class IntBounds:
     def __str__(self):
         return self.__repr__().replace(IntBounds.__name__, "Integer ")
 
-    def __len__(self):
-        return 2
-
     def as_range(self) -> range:
         return range(self.min, self.max + 1)
-
-    def clip(self, number: int) -> int:
-        """
-        Clips a given number to the range. E.g. this function assures that min <= number <= max.
-
-        Parameters
-        ----------
-        number
-            The number to clip.
-
-        Returns
-        -------
-        clipped_number
-            The clipped number.
-        """
-        return max(self.min, min(number, self.max))
 
 
 @dataclass(frozen=True)

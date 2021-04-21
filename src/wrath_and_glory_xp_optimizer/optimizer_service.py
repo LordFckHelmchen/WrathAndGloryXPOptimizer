@@ -4,7 +4,8 @@ import sys
 
 from flask import Flask, Request, abort, request
 
-from . import optimizer_core
+from wrath_and_glory_xp_optimizer import optimizer_core
+from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
 
 # Configure logging on WSGI server-defined stream with default config
 # from https://flask.palletsprojects.com/en/1.1.x/logging/#basic-configuration
@@ -53,13 +54,12 @@ def optimize_xp():
         app.logger.warning(f"Unexpected number of arguments received. {request_to_str(request)}")
         # Ignore additional inputs
 
-    if not optimizer_core.is_valid_target_values_dict(json.loads(request.args["target_values"])):
-        app.logger.info(f"Invalid target values dict received: '{request.args['target_values']}'")
-        abort(400)
-
     # noinspection PyBroadException
     try:
-        return dict(optimizer_core.optimize_xp(json.loads(request.args["target_values"])))
+        return optimizer_core.optimize_xp(json.loads(request.args["target_values"])).as_json()
+    except InvalidTargetValueException:
+        app.logger.info(f"Invalid target values dict received: '{request.args['target_values']}'")
+        abort(400)
     except:
         app.logger.error(f"Optimizer error for target value dict {request.args['target_values']}: "
                          f"{sys.exc_info()[0]}: {sys.exc_info()[1]}")

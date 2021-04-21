@@ -4,10 +4,10 @@ from typing import Optional, Dict, Union, List, Tuple, Type
 
 import numpy as np
 from gekko import GEKKO
-
-from .character_properties import Attributes, Skills, Tier, Traits
-from .exceptions import InvalidTargetValueException, XPCostMismatchException
-from .optimizer_results import AttributeSkillOptimizerResults, CharacterPropertyResults, SkillResults, XPCost
+from wrath_and_glory_xp_optimizer.character_properties import Attributes, Skills, Tier, Traits
+from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
+from wrath_and_glory_xp_optimizer.optimizer_results import AttributeSkillOptimizerResults, CharacterPropertyResults, \
+    SkillResults, XPCost
 
 
 @contextmanager
@@ -34,38 +34,72 @@ class AttributeSkillOptimizer:
                               'minlp_gap_tol 0.01')  # convergence tolerance
 
     def __init__(self,
-                 tier: int = 1,
+                 target_values: Dict[str, int],
                  is_verbose: bool = False,
                  solver_options: Tuple[str] = DEFAULT_SOLVER_OPTIONS):
         """
         Parameters
         ----------
-        tier
-            The tier of the character. If this is outside the valid bounds, it will be clipped to the min/max.
+        target_values
+            A dictionary containing key-value pairs for 'Tier' and the attributes, skills & traits to optimize the XP
+            for. If Tier is missing, the default value of 1 is used.
         is_verbose
             If to show additional solver output.
         solver_options
             Options passed to the Gekko class.
         """
-        self.tier: int = Tier.rating_bounds.clip(tier)
+        if Tier.full_name not in target_values:
+            target_values[Tier.full_name] = Tier.rating_bounds.min
+        if not self.is_valid_target_values_dict(target_values):
+            raise InvalidTargetValueException(f"Invalid target value(s) found: \n{json.dumps(target_values, indent=2)}")
+
+        self.tier: int = target_values.pop(Tier.full_name)
+        self.target_values: Dict[str, int] = target_values
         self.solver_id = 1  # Use APOPT to find the optimal Integer solution, since this is a MINLP.
         self.solver_options = solver_options
         self.is_verbose: bool = is_verbose
 
-    def optimize_selection(self, target_values: Dict[str, int]) -> AttributeSkillOptimizerResults:
+    @staticmethod
+    def is_valid_target_values_dict(target_values: Dict[str, int]) -> bool:
+        """
+        Checks if the given dictionary adheres to the expected format, e.g. contains the required parameters and each
+        value is within its specified bounds.
+
+        Parameters
+        ----------
+        target_values
+            The dictionary to check.
+
+        Returns
+        -------
+        is_valid
+            True if all checks passed, False otherwise.
+
+        """
+        tier = target_values.get(Tier.full_name)
+        if not Tier.is_valid_rating(tier):
+            return False
+
+        for target_name, target_value in target_values.items():
+            if not (target_name == Tier.full_name
+                    or Attributes.get_by_name(target_name).value.is_valid_rating(target_value)
+                    or Skills.get_by_name(target_name).value.is_valid_total_rating(target_value)
+                    or Traits.get_by_name(target_name).value.is_valid_rating(target_value, tier)):
+                return False
+
+        return True
+
+    def optimize_selection(self) -> AttributeSkillOptimizerResults:
         """
         Note
         ----
         This was done with the help of John Hedengren from Gekko (see https://stackoverflow.com/questions/65863807)
         """
-        if not is_valid_target_values_dict({Tier.full_name: self.tier, **target_values}):
-            raise InvalidTargetValueException(f"Invalid target value(s) found: \n{json.dumps(target_values, indent=2)}")
-
         with managed_gekko_solver(remote=False) as solver:
             # Define variables with optimized initial values.
             attribute_ratings = [solver.Var(name=attribute.name,
-                                            value=target_values.get(attribute.name,
-                                                                    attribute.value.rating_bounds.min),
+                                            value=self.target_values.get(attribute.name,
+                                                                         attribute.value.rating_bounds.min),
                                             lb=attribute.value.rating_bounds.min,
                                             ub=attribute.value.rating_bounds.max,
                                             integer=True) for attribute in Attributes.get_valid_members()]
@@ -76,12 +110,12 @@ class AttributeSkillOptimizer:
                                         integer=True) for skill in Skills.get_valid_members()]
             # Optimize initial guess
             for i, skill in enumerate(Skills):
-                if skill.name in target_values:
+                if skill.name in self.target_values:
                     attribute_rating = self._get_gekko_var(skill.value.related_attribute, attribute_ratings).value
-                    skill_ratings[i].value = target_values[skill.name] - attribute_rating
+                    skill_ratings[i].value = self.target_values[skill.name] - attribute_rating
 
             # Target value constraints: Target values must be met or larger.
-            for target, target_value in target_values.items():
+            for target, target_value in self.target_values.items():
                 if (target_enum := Attributes.get_by_name(target)) != Attributes.INVALID:
                     solver.Equation(self._get_gekko_var(target_enum, attribute_ratings) >= target_value)
                 else:
@@ -90,7 +124,7 @@ class AttributeSkillOptimizer:
                         related_attribute = target_enum.value.related_attribute
                     else:  # Traits
                         target_enum = Traits.get_by_name(target)
-                        rating = target_enum.value.get_total_attribute_offset(related_tier=self.tier)
+                        rating = target_enum.value.get_total_attribute_offset(self.tier)
                         related_attribute = target_enum.value.related_attribute
                     solver.Equation(rating + self._get_gekko_var(related_attribute, attribute_ratings) >= target_value)
 
@@ -118,27 +152,23 @@ class AttributeSkillOptimizer:
 
             solver.solve(disp=self.is_verbose)
 
-            result = AttributeSkillOptimizerResults()
-            result.Tier = self.tier
-            result.Attributes = self._get_property_result(Attributes, attribute_ratings + skill_ratings, target_values)
-            skill_property_results = self._get_property_result(Skills, attribute_ratings + skill_ratings, target_values)
-            result.Skills = SkillResults(
-                rating_values={skill.name: int(self._get_gekko_var(skill, skill_ratings).value[0])
-                               for skill in Skills.get_valid_members()},
-                total_values=skill_property_results.Total,
-                target_values=skill_property_results.Target)
-            result.Traits = self._get_property_result(Traits,
-                                                      attribute_ratings + skill_ratings,
-                                                      target_values)
-            result.XPCost = XPCost(Attributes=int(attribute_cost.VALUE.value[0]),
-                                   Skills=int(skill_cost.VALUE.value[0]))
+            return self._compile_results(attribute_ratings, skill_ratings, attribute_cost, skill_cost)
 
-            total_cost = int(solver.options.objfcnval)
-            if total_cost != result.XPCost.Total:
-                raise XPCostMismatchException(f"Total XP cost didn't sum up from Attribute & Skill costs: "
-                                              f"{total_cost} != {result.XPCost.Attributes} + {result.XPCost.Skills}")
+    def _compile_results(self, attribute_ratings, skill_ratings, attribute_cost, skill_cost):
+        all_ratings = attribute_ratings + skill_ratings
 
-            return result
+        skill_property_results = self._get_property_result(Skills, all_ratings)
+        skill_result = SkillResults(rating_values={skill.name: int(self._get_gekko_var(skill, skill_ratings).value[0])
+                                                   for skill in Skills.get_valid_members()},
+                                    total_values=skill_property_results.Total,
+                                    target_values=skill_property_results.Target)
+
+        return AttributeSkillOptimizerResults(Tier=self.tier,
+                                              Attributes=self._get_property_result(Attributes, all_ratings),
+                                              Skills=skill_result,
+                                              Traits=self._get_property_result(Traits, all_ratings),
+                                              XPCost=XPCost(Attributes=int(attribute_cost.VALUE.value[0]),
+                                                            Skills=int(skill_cost.VALUE.value[0])))
 
     @staticmethod
     def _get_gekko_var(attribute_or_skill: Union[Attributes, Skills], ratings: List[GEKKO.Var]) -> Optional[GEKKO.Var]:
@@ -146,15 +176,14 @@ class AttributeSkillOptimizer:
 
     def _get_property_result(self,
                              property_class: Union[Type[Attributes], Type[Skills], Type[Traits]],
-                             all_ratings: List[GEKKO.Var],
-                             target_values: Dict[str, int]) -> CharacterPropertyResults:
+                             all_ratings: List[GEKKO.Var]) -> CharacterPropertyResults:
 
         property_result = CharacterPropertyResults()
         for property_member in property_class.get_valid_members():
             property_name = property_member.name
             property_result.Total[property_name] = self._get_total_value(property_member, all_ratings)
-            if property_name in target_values:
-                property_result.Target[property_name] = target_values[property_name]
+            if property_name in self.target_values:
+                property_result.Target[property_name] = self.target_values[property_name]
                 if property_result.Target[property_name] != property_result.Total[property_name]:
                     property_result.Missed.append(property_name)
         return property_result
@@ -189,36 +218,4 @@ def optimize_xp(target_values: Dict[str, int], is_verbose: bool = False) -> Attr
         The attributes, skills & traits. Either as Markdown table or as JSON string.
 
     """
-    tier = target_values.pop('Tier', 1)
-    optimizer = AttributeSkillOptimizer(tier=tier, is_verbose=is_verbose)
-    return optimizer.optimize_selection(target_values=target_values)
-
-
-def is_valid_target_values_dict(target_values: Dict[str, int]) -> bool:
-    """
-    Checks if the given dictionary adheres to the expected format, e.g. contains the required parameters and each value
-    is within its specified bounds.
-
-    Parameters
-    ----------
-    target_values
-        The dictionary to check.
-
-    Returns
-    -------
-    is_valid
-        True if all checks passed, False otherwise.
-
-    """
-    tier = target_values.get(Tier.full_name)
-    if not Tier.is_valid_rating(tier):
-        return False
-
-    for target_name, target_value in target_values.items():
-        if not (target_name == Tier.full_name
-                or Attributes.get_by_name(target_name).value.is_valid_rating(target_value)
-                or Skills.get_by_name(target_name).value.is_valid_total_rating(target_value)
-                or Traits.get_by_name(target_name).value.is_valid_rating(target_value, tier)):
-            return False
-
-    return True
+    return AttributeSkillOptimizer(target_values, is_verbose).optimize_selection()

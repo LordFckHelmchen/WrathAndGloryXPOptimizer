@@ -5,10 +5,9 @@ import json
 from typing import TextIO
 
 import click
-
-from . import __version__
-from .character_properties import Attributes, IntBounds, Skills, Tier, Traits
-from .optimizer_core import AttributeSkillOptimizer, optimize_xp
+from wrath_and_glory_xp_optimizer import __version__
+from wrath_and_glory_xp_optimizer.character_properties import Attributes, IntBounds, Skills, Tier, Traits
+from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer, optimize_xp
 
 
 def print_target_values_text(ctx, _, value) -> None:
@@ -79,3 +78,7 @@ def cli(file: TextIO, output_format: str, is_verbose: bool):
 
     optimizer_result = optimize_xp(json.load(file), is_verbose=is_verbose)
     click.echo(optimizer_result.as_json() if output_format == "json" else optimizer_result.as_markdown())
+
+
+if __name__ == '__main__':  # pragma: no cover
+    cli()

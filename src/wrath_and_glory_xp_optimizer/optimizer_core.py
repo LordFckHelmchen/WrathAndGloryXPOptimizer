@@ -1,4 +1,5 @@
 import json
+from contextlib import contextmanager
 from typing import Optional, Dict, Union, List, Tuple, Type
 
 import numpy as np
@@ -9,15 +10,16 @@ from .exceptions import InvalidTargetValueException, XPCostMismatchException
 from .optimizer_results import AttributeSkillOptimizerResults, CharacterPropertyResults, SkillResults, XPCost
 
 
-class GekkoContext:
-    def __init__(self, *args, **kwargs):
-        self.solver = GEKKO(*args, **kwargs)
-
-    def __enter__(self):
-        return self.solver
-
-    def __exit__(self, exec_type, exec_value, exec_traceback):
-        self.solver.cleanup()
+@contextmanager
+def managed_gekko_solver(*args, **kwargs):
+    """
+    Context manager for the GEKKO class, to automatically clean-up temp. files & folders after solving.
+    """
+    solver = GEKKO(*args, **kwargs)
+    try:
+        yield solver
+    finally:
+        solver.cleanup()
 
 
 class AttributeSkillOptimizer:

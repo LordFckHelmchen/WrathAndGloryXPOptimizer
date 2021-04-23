@@ -68,7 +68,8 @@ class SkillResults(CharacterPropertyResults):
                  rating_values: Dict[str, int] = None,
                  total_values: Dict[str, int] = None,
                  target_values: Dict[str, int] = None):
-        super().__init__(total_values, target_values)
+        super().__init__(total_values if total_values is not None else dict(), 
+                         target_values if target_values is not None else dict())
         self.Rating: Dict[str, int] = rating_values if rating_values is not None else dict()
 
     def __iter__(self) -> Iterator[Tuple[str, Union[Dict[str, int], List[str]]]]:

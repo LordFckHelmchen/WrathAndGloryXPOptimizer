@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Optional, Union
 
 
 @dataclass
@@ -14,14 +14,11 @@ class IntBounds:
         if self.min > self.max:
             self.min, self.max = self.max, self.min
 
-    def __add__(self, other):
+    def __add__(self, other: Union[int, IntBounds]):
         if isinstance(other, int):
             other = IntBounds(other, other)
 
-        if isinstance(other, IntBounds):
-            return IntBounds(min=self.min + other.min, max=self.max + other.max)
-
-        raise TypeError(f"Unsupported operand type(s) for +: '{type(self).__name__}' and '{type(other).__name__}'")
+        return IntBounds(min=self.min + other.min, max=self.max + other.max)
 
     def __contains__(self, item: int) -> bool:
         return self.min <= item <= self.max
@@ -43,7 +40,7 @@ class BaseProperty:
     rating_bounds: ClassVar[IntBounds]
 
     @classmethod
-    def is_valid_rating(cls, rating) -> bool:
+    def is_valid_rating(cls, rating: Any) -> bool:
         return isinstance(rating, int) and rating in cls.rating_bounds
 
 
@@ -76,7 +73,7 @@ class InvalidAttribute(Attribute):
     rating_bounds: ClassVar[IntBounds] = IntBounds(*[Attribute.rating_bounds.min - 1] * 2)
     short_name: ClassVar[str] = "N/A"
 
-    def is_valid_rating(self, rating) -> bool:
+    def is_valid_rating(self, rating: Any) -> bool:
         return False
 
 
@@ -106,10 +103,10 @@ class Skill(BaseProperty):
     related_attribute: Attributes
 
     @property
-    def total_rating_bounds(self):
+    def total_rating_bounds(self) -> IntBounds:
         return self.rating_bounds + Attribute.rating_bounds
 
-    def is_valid_total_rating(self, rating) -> bool:
+    def is_valid_total_rating(self, rating: Any) -> bool:
         return isinstance(rating, int) and rating in self.total_rating_bounds
 
 
@@ -120,13 +117,13 @@ class InvalidSkill(Skill):
     related_attribute: ClassVar[Attributes] = Attributes.INVALID
 
     @property
-    def total_rating_bounds(self):
+    def total_rating_bounds(self) -> IntBounds:
         return self.rating_bounds
 
-    def is_valid_rating(self, rating) -> bool:
+    def is_valid_rating(self, rating: Any) -> bool:
         return False
 
-    def is_valid_total_rating(self, rating) -> bool:
+    def is_valid_total_rating(self, rating: Any) -> bool:
         return False
 
 
@@ -168,7 +165,7 @@ class Trait:
     def get_total_attribute_offset(self, related_tier: int) -> int:
         return self.attribute_offset + self.tier_modifier * related_tier
 
-    def is_valid_rating(self, rating, related_tier: int) -> bool:
+    def is_valid_rating(self, rating: Any, related_tier: int) -> bool:
         return isinstance(rating, int) and rating in self.get_rating_bounds(related_tier)
 
 
@@ -179,7 +176,7 @@ class InvalidTrait(Trait):
     attribute_offset: ClassVar[int] = 0
     tier_modifier: ClassVar[int] = 0
 
-    def is_valid_rating(self, rating, related_tier: int) -> bool:
+    def is_valid_rating(self, rating: Any, related_tier: int) -> bool:
         return False
 
 

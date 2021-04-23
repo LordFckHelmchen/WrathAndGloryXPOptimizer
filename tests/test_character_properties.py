@@ -36,13 +36,6 @@ class TestIntBounds(unittest.TestCase):
         observed_bounds = IntBounds(min_val, max_val) + add_val
         self.assertEqual(expected_bounds, observed_bounds)
 
-    def test_add_float_expect_TypeError(self):
-        min_val = 1
-        max_val = 2
-        add_val = 0.6
-        with self.assertRaises(TypeError):
-            IntBounds(min_val, max_val) + add_val
-
     def test_add_IntBounds_expect_correct_results(self):
         min_val = -7
         max_val = 236

@@ -2,7 +2,7 @@
 Command-line interface of the optimizer core.
 """
 import json
-from typing import TextIO
+from typing import Any, TextIO
 
 import click
 from wrath_and_glory_xp_optimizer import __version__
@@ -11,8 +11,8 @@ from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
 from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer, optimize_xp
 
 
-def print_target_values_text(ctx, _, value) -> None:
-    if not value or ctx.resilient_parsing:
+def print_target_values_text(click_context: click.Context, _: Any, value: Any) -> None:
+    if not value or click_context.resilient_parsing:
         return
 
     indent = "   "
@@ -39,7 +39,7 @@ def print_target_values_text(ctx, _, value) -> None:
             properties.append(format_entry(target_enum.name, rating_bounds))
 
     click.echo(f"\n{indent}".join(properties))
-    ctx.exit()
+    click_context.exit()
 
 
 @click.command(name="optimizer-xp", no_args_is_help=True)

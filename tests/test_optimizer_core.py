@@ -110,12 +110,12 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
                                              Skills.BallisticSkill.name: Skills.BallisticSkill.value.total_rating_bounds.max})
         self.assertEqual(Tier.rating_bounds.min, optimizer.tier)
 
-    def test__get_gekko_var_expect_none_for_missing_property(self):
+    def test__get_gekko_var_expect_StopIteration_for_missing_property(self):
         with managed_gekko_solver(remote=False) as solver:
             # Define variables with optimized initial values.
-            gekko_variables = [solver.Var(name="test_var"), solver.Param(name="test_param")]
-            found_variable = AttributeSkillOptimizer._get_gekko_var(Attributes.Fellowship, gekko_variables)
-        self.assertIsNone(found_variable)
+            gekko_variables = [solver.Var(name="test_var_1"), solver.Var(name="test_var_2")]
+            with self.assertRaises(StopIteration):
+                AttributeSkillOptimizer._get_gekko_var(Attributes.Fellowship, gekko_variables)
 
     def test_empty_dict_expect_False(self):
         self.assert_is_invalid_target_values_dict(dict())

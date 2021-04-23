@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, ClassVar, Optional, Union
+from typing import Any, ClassVar, Union
 
 
 @dataclass
@@ -52,7 +52,7 @@ class Tier(BaseProperty):
 
 class PropertyEnum(Enum):
     @classmethod
-    def get_by_name(cls, name: str) -> Optional[PropertyEnum]:
+    def get_by_name(cls, name: str) -> PropertyEnum:
         return next((member for member in cls if member.name == name or member.value.full_name == name),
                     cls.INVALID)
 

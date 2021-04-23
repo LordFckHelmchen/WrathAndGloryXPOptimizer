@@ -1,9 +1,11 @@
 import json
 from contextlib import contextmanager
-from typing import Optional, Dict, Union, List, Tuple, Type
+from typing import Iterator, Optional, Dict, Union, List, Tuple, Type
 
 import numpy as np
 from gekko import GEKKO
+from gekko.gk_variable import GKVariable
+from gekko.gk_operators import GK_Intermediate
 from wrath_and_glory_xp_optimizer.character_properties import Attributes, Skills, Tier, Traits
 from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
 from wrath_and_glory_xp_optimizer.optimizer_results import AttributeSkillOptimizerResults, CharacterPropertyResults, \
@@ -11,7 +13,7 @@ from wrath_and_glory_xp_optimizer.optimizer_results import AttributeSkillOptimiz
 
 
 @contextmanager
-def managed_gekko_solver(*args, **kwargs):
+def managed_gekko_solver(*args, **kwargs) -> Iterator[GEKKO]:
     """
     Context manager for the GEKKO class, to automatically clean-up temp. files & folders after solving.
     """
@@ -36,7 +38,7 @@ class AttributeSkillOptimizer:
     def __init__(self,
                  target_values: Dict[str, int],
                  is_verbose: bool = False,
-                 solver_options: Tuple[str] = DEFAULT_SOLVER_OPTIONS):
+                 solver_options: Tuple[str, ...] = DEFAULT_SOLVER_OPTIONS):
         """
         Parameters
         ----------
@@ -56,7 +58,7 @@ class AttributeSkillOptimizer:
         self.tier: int = target_values.pop(Tier.full_name)
         self.target_values: Dict[str, int] = target_values
         self.solver_id = 1  # Use APOPT to find the optimal Integer solution, since this is a MINLP.
-        self.solver_options = solver_options
+        self.solver_options = list(solver_options)
         self.is_verbose: bool = is_verbose
 
     @staticmethod
@@ -154,7 +156,11 @@ class AttributeSkillOptimizer:
 
             return self._compile_results(attribute_ratings, skill_ratings, attribute_cost, skill_cost)
 
-    def _compile_results(self, attribute_ratings, skill_ratings, attribute_cost, skill_cost):
+    def _compile_results(self,
+                         attribute_ratings: List[GKVariable],
+                         skill_ratings: List[GKVariable],
+                         attribute_cost: GK_Intermediate,
+                         skill_cost: GK_Intermediate):
         all_ratings = attribute_ratings + skill_ratings
 
         skill_property_results = self._get_property_result(Skills, all_ratings)
@@ -171,12 +177,13 @@ class AttributeSkillOptimizer:
                                                             Skills=int(skill_cost.VALUE.value[0])))
 
     @staticmethod
-    def _get_gekko_var(attribute_or_skill: Union[Attributes, Skills], ratings: List[GEKKO.Var]) -> Optional[GEKKO.Var]:
-        return next((rating for rating in ratings if rating.name == f"int_{attribute_or_skill.name.lower()}"), None)
+    def _get_gekko_var(attribute_or_skill: Union[Attributes, Skills],
+                       ratings: List[GKVariable]) -> Optional[GKVariable]:
+        return next((rating for rating in ratings if rating.name == f"int_{attribute_or_skill.name.lower()}"))
 
     def _get_property_result(self,
                              property_class: Union[Type[Attributes], Type[Skills], Type[Traits]],
-                             all_ratings: List[GEKKO.Var]) -> CharacterPropertyResults:
+                             all_ratings: List[GKVariable]) -> CharacterPropertyResults:
 
         property_result = CharacterPropertyResults()
         for property_member in property_class.get_valid_members():
@@ -188,7 +195,7 @@ class AttributeSkillOptimizer:
                     property_result.Missed.append(property_name)
         return property_result
 
-    def _get_total_value(self, target_enum: Union[Attributes, Skills, Traits], all_ratings: List[GEKKO.Var]) -> int:
+    def _get_total_value(self, target_enum: Union[Attributes, Skills, Traits], all_ratings: List[GKVariable]) -> int:
         if target_enum in Attributes:
             rating = 0
             related_attribute = target_enum

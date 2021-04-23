@@ -69,16 +69,16 @@ class Attribute(BaseProperty):
 
 @dataclass(frozen=True)
 class InvalidAttribute(Attribute):
-    full_name: ClassVar[str] = "INVALID"
+    full_name: str = "INVALID"
     rating_bounds: ClassVar[IntBounds] = IntBounds(*[Attribute.rating_bounds.min - 1] * 2)
-    short_name: ClassVar[str] = "N/A"
+    short_name: str = "N/A"
 
     def is_valid_rating(self, rating: Any) -> bool:
         return False
 
 
 class Attributes(PropertyEnum):
-    # full or short names must be unique, to avoid Enum's unique() to remove duplicates.
+    # full or short names must be unique, to avoid Enum.unique() to remove duplicates.
     Strength = Attribute(full_name="Strength", short_name="S")
     Toughness = Attribute(full_name="Toughness", short_name="T")
     Agility = Attribute(full_name="Agility", short_name="A")
@@ -112,9 +112,9 @@ class Skill(BaseProperty):
 
 @dataclass(frozen=True)
 class InvalidSkill(Skill):
-    full_name: ClassVar[str] = "INVALID"
+    full_name: str = "INVALID"
     rating_bounds: ClassVar[IntBounds] = IntBounds(*[Skill.rating_bounds.min - 1] * 2)
-    related_attribute: ClassVar[Attributes] = Attributes.INVALID
+    related_attribute: Attributes = Attributes.INVALID
 
     @property
     def total_rating_bounds(self) -> IntBounds:
@@ -128,7 +128,7 @@ class InvalidSkill(Skill):
 
 
 class Skills(PropertyEnum):
-    # full names must be unique, to avoid Enum's unique() to remove duplicates.
+    # full names must be unique, to avoid Enum.unique() to remove duplicates.
     Athletics = Skill(full_name="Athletics", related_attribute=Attributes.Strength)
     Awareness = Skill(full_name="Awareness", related_attribute=Attributes.Intellect)
     BallisticSkill = Skill(full_name="Ballistic Skill", related_attribute=Attributes.Agility)
@@ -153,7 +153,7 @@ class Skills(PropertyEnum):
 
 @dataclass(frozen=True)
 class Trait:
-    # full names must be unique, to avoid Enum's unique() to remove duplicates.
+    # full names must be unique, to avoid Enum.unique() to remove duplicates.
     full_name: str
     related_attribute: Attributes
     attribute_offset: int
@@ -171,10 +171,10 @@ class Trait:
 
 @dataclass(frozen=True)
 class InvalidTrait(Trait):
-    full_name: ClassVar[str] = "INVALID"
-    related_attribute: ClassVar[Attributes] = Attributes.INVALID
-    attribute_offset: ClassVar[int] = 0
-    tier_modifier: ClassVar[int] = 0
+    full_name: str = "INVALID"
+    related_attribute: Attributes = Attributes.INVALID
+    attribute_offset: int = 0
+    tier_modifier: int = 0
 
     def is_valid_rating(self, rating: Any, related_tier: int) -> bool:
         return False

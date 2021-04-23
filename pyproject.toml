@@ -33,6 +33,7 @@ source = ["wrath_and_glory_xp_optimizer"]
 
 [tool.coverage.report]
 show_missing = true
+fail_under = 100
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

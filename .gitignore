@@ -1,5 +1,6 @@
-# IntelliJ IDE stuff
+# IDE stuff
 .idea/
+.vscode/
 
 # Python stuff
 __pycache__/

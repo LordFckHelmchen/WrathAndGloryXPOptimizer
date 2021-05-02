@@ -4,8 +4,8 @@ from typing import Iterator, Optional, Dict, Union, List, Tuple, Type
 
 import numpy as np
 from gekko import GEKKO
-from gekko.gk_variable import GKVariable
 from gekko.gk_operators import GK_Intermediate
+from gekko.gk_variable import GKVariable
 from wrath_and_glory_xp_optimizer.character_properties import Attributes, Skills, Tier, Traits
 from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
 from wrath_and_glory_xp_optimizer.optimizer_results import AttributeSkillOptimizerResults, CharacterPropertyResults, \

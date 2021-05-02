@@ -7,12 +7,14 @@ class TestIntBounds(unittest.TestCase):
     def test_contains_with_values_within_bounds_expect_true(self):
         bounds = IntBounds(-1, 1)
         for val in bounds.as_range():
-            self.assertTrue(val in bounds, f"Value within bounds was not identified: {val} in {bounds}!")
+            with self.subTest(i=val):
+                self.assertTrue(val in bounds, f"Value within bounds was not identified: {val} in {bounds}!")
 
     def test_contains_with_none_and_values_outside_bounds_expect_false(self):
         bounds = IntBounds(-8, 12)
         for val in [None, bounds.min - 1, bounds.max + 1]:
-            self.assertFalse(val in bounds, f"Out-of-bound value was not identified: {val} not in {bounds}!")
+            with self.subTest(i=val):
+                self.assertFalse(val in bounds, f"Out-of-bound value was not identified: {val} not in {bounds}!")
 
     def test_as_range_expect_bounds_to_be_met(self):
         min_val = -12

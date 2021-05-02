@@ -37,6 +37,10 @@ class IntBounds:
 @dataclass(frozen=True)
 class BaseProperty:
     full_name: str
+
+
+@dataclass(frozen=True)
+class RatingMixin:
     rating_bounds: ClassVar[IntBounds]
 
     @classmethod
@@ -45,8 +49,13 @@ class BaseProperty:
 
 
 @dataclass(frozen=True)
-class Tier(BaseProperty):
-    full_name = "Tier"
+class RelatedAttributeMixin:
+    related_attribute: Attributes
+
+
+@dataclass(frozen=True)
+class Tier(BaseProperty, RatingMixin):
+    full_name: str = "Tier"
     rating_bounds: ClassVar[IntBounds] = IntBounds(1, 5)
 
 
@@ -62,7 +71,7 @@ class PropertyEnum(Enum):
 
 
 @dataclass(frozen=True)
-class Attribute(BaseProperty):
+class Attribute(BaseProperty, RatingMixin):
     rating_bounds: ClassVar[IntBounds] = IntBounds(1, 12)
     short_name: str
 
@@ -98,9 +107,8 @@ class Attributes(PropertyEnum):
 
 
 @dataclass(frozen=True)
-class Skill(BaseProperty):
+class Skill(BaseProperty, RatingMixin, RelatedAttributeMixin):
     rating_bounds: ClassVar[IntBounds] = IntBounds(0, 8)
-    related_attribute: Attributes
 
     @property
     def total_rating_bounds(self) -> IntBounds:
@@ -152,10 +160,7 @@ class Skills(PropertyEnum):
 
 
 @dataclass(frozen=True)
-class Trait:
-    # full names must be unique, to avoid Enum.unique() to remove duplicates.
-    full_name: str
-    related_attribute: Attributes
+class Trait(BaseProperty, RelatedAttributeMixin):
     attribute_offset: int
     tier_modifier: int
 
@@ -181,6 +186,7 @@ class InvalidTrait(Trait):
 
 
 class Traits(PropertyEnum):
+    # full names must be unique, to avoid Enum.unique() to remove duplicates.
     Conviction = Trait(full_name="Conviction",
                        related_attribute=Attributes.Willpower,
                        attribute_offset=0,

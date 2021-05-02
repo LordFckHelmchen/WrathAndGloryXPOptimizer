@@ -21,7 +21,7 @@ class IntBounds:
         return IntBounds(min=self.min + other.min, max=self.max + other.max)
 
     def __contains__(self, item: int) -> bool:
-        return self.min <= item <= self.max
+        return item in self.as_range()
 
     def __iter__(self):
         yield self.min

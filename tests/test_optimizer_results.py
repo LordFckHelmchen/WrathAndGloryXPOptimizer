@@ -44,18 +44,18 @@ class TestPropertyResults(unittest.TestCase):
         ):
             with self.subTest(i=extension):
                 self.assertEqual(
-                    example_data["expected_results"][extension], formatter(result)
+                    example_data["expected_results"][extension].rstrip(), formatter(result).rstrip()
                 )
 
     def test_as_markdown_with_totals_below_equal_and_above_targets_expect_missed_only_for_below_target_values(
         self,
     ):
         expected_string = (
-            "Name           | Total  | Target | Missed\n"
-            "-------------- | ------ | ------ | ------\n"
-            "Fellowship     | 7      | 5      | NO    \n"
-            "BallisticSkill | 4      | 4      | NO    \n"
-            "MaxShock       | 9      | 10     | YES   "
+            "| Name           |   Total |   Target | Missed   |\n"
+            "|----------------|---------|----------|----------|\n"
+            "| Fellowship     |       7 |        5 | NO       |\n"
+            "| BallisticSkill |       4 |        4 | NO       |\n"
+            "| MaxShock       |       9 |       10 | YES      |"
         )
         results = CharacterPropertyResults(
             Target={

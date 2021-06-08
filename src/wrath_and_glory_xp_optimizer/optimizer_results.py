@@ -8,6 +8,8 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
+from tabulate import tabulate
+
 
 @dataclass()
 class CharacterPropertyResults:
@@ -32,47 +34,19 @@ class CharacterPropertyResults:
 
     def as_markdown(self) -> str:
         """
-        Creates a string with the Markdown-table representation of the results.
-        Returns
-        -------
-        as_string
+        Creates a string with the GitHub-styled Markdown-table representation of the results.
         """
-        name_width = max(len("Name"), max(len(name) for name in self.Total))
-        max_value_header_width = max(len(header_name) for header_name, _ in self)
-        value_width = max(
-            max_value_header_width,
-            max(len(str(value)) for value in self.Total.values()),
-        )
-
-        value_widths = {column_name: max(len(column_name), max(len(str(value)) for value in column_data.values())) for column_name, column_data in self}
-        name_format = "{0:" + str(name_width) + "}"
-        value_format = "{0:<" + str(value_width) + "}"
-
-        # Table header
-        as_string = f"| {name_format.format('Name')} |"
-        for column_name, _ in self:
-            as_string += f" {value_format.format(column_name)} |"
-
-        # Header separator
-        as_string += "\n| " + "-" * name_width + " |"
-        for _, _ in self:
-            as_string += f" {'-' * value_width}  |"
-
-        # Table rows
-        for row_name in self.Total:
-            as_string += f"\n| {name_format.format(row_name)} |"
-            for column_name, column_data in self:
-                row_data = "-"
-                if column_name == "Missed":
-                    if row_name in self.Missed:
-                        row_data = "YES"
-                    elif row_name in self.Target:
-                        row_data = "NO"
-                elif row_name in column_data:
-                    row_data = column_data[row_name]
-                as_string += f" {value_format.format(row_data)} |"
-
-        return as_string
+        table = {
+            "Name": self.Total.keys(),
+            "Total": self.Total.values(),
+            "Target": [None] * len(self.Total),
+            "Missed": [None] * len(self.Total),
+        }
+        for row_id, row_name in enumerate(self.Total):
+            if row_name in self.Target:
+                table["Target"][row_id] = self.Target[row_name]
+                table["Missed"][row_id] = "YES" if row_name in self.Missed else "NO"
+        return tabulate(table, headers="keys", tablefmt="github", missingval="-")
 
 
 class SkillResults(CharacterPropertyResults):
@@ -95,6 +69,23 @@ class SkillResults(CharacterPropertyResults):
         for d in super().__iter__():
             yield d
 
+    def as_markdown(self) -> str:
+        """
+        Creates a string with the GitHub-styled Markdown-table representation of the results.
+        """
+        table = {
+            "Name": self.Total.keys(),
+            "Rating": self.Rating.values(),
+            "Total": self.Total.values(),
+            "Target": [None] * len(self.Total),
+            "Missed": [None] * len(self.Total),
+        }
+        for row_id, row_name in enumerate(self.Total):
+            if row_name in self.Target:
+                table["Target"][row_id] = self.Target[row_name]
+                table["Missed"][row_id] = "YES" if row_name in self.Missed else "NO"
+        return tabulate(table, headers="keys", tablefmt="github", missingval="-")
+
 
 @dataclass()
 class XPCost:
@@ -115,33 +106,13 @@ class XPCost:
 
     def as_markdown(self) -> str:
         """
-        Creates a string with the Markdown-table representation of the results.
-        Returns
-        -------
-        as_string
+        Creates a string with the GitHub-styled Markdown-table representation of the results.
         """
-        name_width = max(len("Name"), max(len(name) for name, _ in self))
-        value_width = max(len("Cost"), max(len(str(value)) for _, value in self))
-
-        def format_row(name: str, data: Union[str, int], prefix: str = "\n") -> str:
-            return (
-                prefix
-                + ("{0:" + str(name_width) + "}").format(name)
-                + " | "
-                + ("{0:<" + str(value_width) + "}").format(data)
-            )
-
-        # Table header + separator
-        as_string = format_row("Name", "Cost", prefix="")
-
-        # Header separator
-        as_string += format_row("-" * name_width, "-" * value_width)
-
-        # Table rows
+        table = {"Name": [], "Cost": []}
         for row_name, row_data in self:
-            as_string += format_row(row_name, row_data)
-
-        return as_string
+            table["Name"].append(row_name)
+            table["Cost"].append(row_data)
+        return tabulate(table, headers="keys", tablefmt="github")
 
 
 @dataclass
@@ -164,14 +135,11 @@ class AttributeSkillOptimizerResults:
 
     def as_markdown(self) -> str:
         """
-        Creates a string with the Markdown-table representation of the results.
-        Returns
-        -------
-        as_string
+        Creates a string with the GitHub-styled Markdown-table representation of the results.
         """
         as_string = ""
         for attr_name, _ in self:
-            as_string += f"\n## {attr_name}\n{getattr(self, attr_name)}\n"
+            as_string += f"\n## {attr_name}\n\n{getattr(self, attr_name)}\n"
         return as_string
 
     def as_json(self, indent: Optional[int] = 2) -> str:

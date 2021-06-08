@@ -1,0 +1,11 @@
+{
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "LordFckHelmchen",
+  "email": "dj_mack@gmx.de",
+  "friendly_name": "Wrath & Glory XP Optimizer",
+  "github_user": "LordFckHelmchen",
+  "license": "MIT",
+  "package_name": "wrath_and_glory_xp_optimizer",
+  "project_name": "wrath-and-glory-xp-optimizer",
+  "version": "2.0.0"
+}

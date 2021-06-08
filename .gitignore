@@ -3,11 +3,17 @@
 .vscode/
 
 # Python stuff
+/.python-version
+/.pytype/
 __pycache__/
 venv/
+/dist/
 
-# Unittests
-.coverage
+# Testing
+.mypy_cache/
+/.coverage
+/.nox/
 
 # Other
-XPOptimizer*.ods
+/docs/_build/
+/src/*.egg-info/

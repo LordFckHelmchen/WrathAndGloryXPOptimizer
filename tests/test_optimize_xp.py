@@ -59,7 +59,8 @@ class TestOptimizeXpCLI(unittest.TestCase):
                 self.assert_valid_exit_code(result)
                 # Remove trailing whitespaces & newlines.
                 self.assertEqual(
-                    example_data["expected_results"][extension].rstrip(), result.output.rstrip()
+                    example_data["expected_results"][extension].rstrip(),
+                    result.output.rstrip(),
                 )
 
     def test_verbose_flag_expect_valid_exit_code_and_longer_output_than_normal_execution(

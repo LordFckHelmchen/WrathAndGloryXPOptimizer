@@ -49,3 +49,4 @@ repos:
     rev: v2.1.2
     hooks:
       - id: prettier
+        exclude: example_file_expected_results\.md

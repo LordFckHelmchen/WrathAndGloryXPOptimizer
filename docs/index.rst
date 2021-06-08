@@ -1,4 +1,4 @@
-.. include:: ../README.rst
+.. include:: ../README.md
    :end-before: github-only
 
 .. _Contributor Guide: contributing.html
@@ -13,4 +13,4 @@
    contributing
    Code of Conduct <codeofconduct>
    License <license>
-   Changelog <https://github.com/LordFckHelmchen/wrath-and-glory-xp-optimizer/releases>
+   Changelog <https://github.com/LordFckHelmchen/WrathAndGloryXPOptimizer/releases>

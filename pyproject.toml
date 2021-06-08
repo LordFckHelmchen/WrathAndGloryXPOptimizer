@@ -8,14 +8,14 @@ readme = "README.md"
 homepage = "https://github.com/LordFckHelmchen/WrathAndGloryXPOptimizer"
 keywords = ["rpg", "rpg-tool",  "wrathandglory", "optimization", "mixed-integer non-linear programming", "minlp", "gekko"]
 repository = "https://github.com/LordFckHelmchen/WrathAndGloryXPOptimizer"
-documentation = "https://wrath-and-glory-xp-optimizer.readthedocs.io"
+documentation = "https://WrathAndGloryXPOptimizer.readthedocs.io"
 classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
 ]
 
 [tool.poetry.urls]
-Changelog = "https://github.com/LordFckHelmchen/wrath-and-glory-xp-optimizer/releases"
+Changelog = "https://github.com/LordFckHelmchen/WrathAndGloryXPOptimizer/releases"
 
 [tool.poetry.dependencies]
 python = "^3.8"

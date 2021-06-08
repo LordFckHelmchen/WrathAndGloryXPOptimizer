@@ -6,8 +6,8 @@ Reference
     :backlinks: none
 
 
-wrath_and_glory_xp_optimizer.__main__
--------------------------------------
+wrath_and_glory_xp_optimizer.optimize_xp
+----------------------------------------
 
-.. automodule:: wrath_and_glory_xp_optimizer.__main__
+.. automodule:: wrath_and_glory_xp_optimizer.optimize_xp
    :members:

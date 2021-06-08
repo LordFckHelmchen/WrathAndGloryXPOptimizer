@@ -1,6 +1,12 @@
 import unittest
 
-from wrath_and_glory_xp_optimizer.character_properties import Attribute, Attributes, IntBounds, Skill, Skills, Trait, Traits
+from wrath_and_glory_xp_optimizer.character_properties import Attribute
+from wrath_and_glory_xp_optimizer.character_properties import Attributes
+from wrath_and_glory_xp_optimizer.character_properties import IntBounds
+from wrath_and_glory_xp_optimizer.character_properties import Skill
+from wrath_and_glory_xp_optimizer.character_properties import Skills
+from wrath_and_glory_xp_optimizer.character_properties import Trait
+from wrath_and_glory_xp_optimizer.character_properties import Traits
 
 
 class TestIntBounds(unittest.TestCase):
@@ -8,13 +14,19 @@ class TestIntBounds(unittest.TestCase):
         bounds = IntBounds(-1, 1)
         for val in bounds.as_range():
             with self.subTest(i=val):
-                self.assertTrue(val in bounds, f"Value within bounds was not identified: {val} in {bounds}!")
+                self.assertTrue(
+                    val in bounds,
+                    f"Value within bounds was not identified: {val} in {bounds}!",
+                )
 
     def test_contains_with_none_and_values_outside_bounds_expect_false(self):
         bounds = IntBounds(-8, 12)
         for val in [None, bounds.min - 1, bounds.max + 1]:
             with self.subTest(i=val):
-                self.assertFalse(val in bounds, f"Out-of-bound value was not identified: {val} not in {bounds}!")
+                self.assertFalse(
+                    val in bounds,
+                    f"Out-of-bound value was not identified: {val} not in {bounds}!",
+                )
 
     def test_as_range_expect_bounds_to_be_met(self):
         min_val = -12
@@ -89,33 +101,43 @@ class TestIntBounds(unittest.TestCase):
 
 class TestInvalidAttributeAndSkill(unittest.TestCase):
     def test_total_rating_bounds_expect_min_max_to_be_smaller_than_valid_min(self):
-        for property_class, invalid_property in zip([Attribute, Skill],
-                                                    [Attributes.INVALID.value, Skills.INVALID.value]):
+        for property_class, invalid_property in zip(
+            [Attribute, Skill], [Attributes.INVALID.value, Skills.INVALID.value]
+        ):
             for val in invalid_property.rating_bounds:
                 with self.subTest(i=f"{type(invalid_property).__name__}: {val}"):
                     self.assertFalse(property_class.is_valid_rating(val))
                     self.assertIsNone(val)
 
     def test_is_valid_rating_expect_false(self):
-        for property_class, invalid_property in zip([Attribute, Skill],
-                                                    [Attributes.INVALID.value, Skills.INVALID.value]):
-            for val in [invalid_property.rating_bounds.min, property_class.rating_bounds.max]:
+        for property_class, invalid_property in zip(
+            [Attribute, Skill], [Attributes.INVALID.value, Skills.INVALID.value]
+        ):
+            for val in [
+                invalid_property.rating_bounds.min,
+                property_class.rating_bounds.max,
+            ]:
                 with self.subTest(i=f"{type(invalid_property).__name__}: {val}"):
                     self.assertFalse(invalid_property.is_valid_rating(val))
 
 
 class TestInvalidSkill(unittest.TestCase):
     def test_total_rating_expect_same_invalid_value_as_rating(self):
-        self.assertEqual(Skills.INVALID.value.rating_bounds, Skills.INVALID.value.total_rating_bounds)
+        self.assertEqual(
+            Skills.INVALID.value.rating_bounds, Skills.INVALID.value.total_rating_bounds
+        )
 
     def test_is_valid_total_rating_expect_false(self):
         for val in [Skill.rating_bounds.min, Skill.rating_bounds.max]:
             with self.subTest(i=val):
                 self.assertFalse(Skills.INVALID.value.is_valid_total_rating(val))
 
+
 class TestInvalidTrait(unittest.TestCase):
     def test_is_valid_rating_expect_false(self):
         tier = 1
         for val in Traits.Conviction.value.get_rating_bounds(related_tier=tier):
             with self.subTest(i=val):
-                self.assertFalse(Traits.INVALID.value.is_valid_rating(val, related_tier=tier))
+                self.assertFalse(
+                    Traits.INVALID.value.is_valid_rating(val, related_tier=tier)
+                )

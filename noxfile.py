@@ -20,7 +20,9 @@ except ImportError:
 
 
 package = "wrath_and_glory_xp_optimizer"
-python_versions = ["3.9", "3.8", "3.7", "3.6"]
+main_python_version = "3.8"
+# TODO: Add "3.9", "3.7", "3.6"
+python_versions = [main_python_version]
 nox.options.sessions = (
     "pre-commit",
     "safety",
@@ -83,7 +85,7 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
         hook.write_text("\n".join(lines))
 
 
-@session(name="pre-commit", python="3.9")
+@session(name="pre-commit", python=main_python_version)
 def precommit(session: Session) -> None:
     """Lint using pre-commit."""
     args = session.posargs or ["run", "--all-files", "--show-diff-on-failure"]
@@ -105,7 +107,7 @@ def precommit(session: Session) -> None:
         activate_virtualenv_in_precommit_hooks(session)
 
 
-@session(python="3.9")
+@session(python=main_python_version)
 def safety(session: Session) -> None:
     """Scan dependencies for insecure packages."""
     requirements = session.poetry.export_requirements()
@@ -159,17 +161,17 @@ def typeguard(session: Session) -> None:
     session.install("pytest", "typeguard", "pygments")
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
 
+# TODO: Consider if we will need it or not
+# @session(python=python_versions)
+# def xdoctest(session: Session) -> None:
+#     """Run examples with xdoctest."""
+#     args = session.posargs or ["all"]
+#     session.install(".")
+#     session.install("xdoctest[colors]")
+#     session.run("python", "-m", "xdoctest", package, *args)
 
-@session(python=python_versions)
-def xdoctest(session: Session) -> None:
-    """Run examples with xdoctest."""
-    args = session.posargs or ["all"]
-    session.install(".")
-    session.install("xdoctest[colors]")
-    session.run("python", "-m", "xdoctest", package, *args)
 
-
-@session(name="docs-build", python="3.8")
+@session(name="docs-build", python=main_python_version)
 def docs_build(session: Session) -> None:
     """Build the documentation."""
     args = session.posargs or ["docs", "docs/_build"]
@@ -183,7 +185,7 @@ def docs_build(session: Session) -> None:
     session.run("sphinx-build", *args)
 
 
-@session(python="3.8")
+@session(python=main_python_version)
 def docs(session: Session) -> None:
     """Build and serve the documentation with live reloading on file changes."""
     args = session.posargs or ["--open-browser", "docs", "docs/_build"]

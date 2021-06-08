@@ -1,6 +1,12 @@
 import json
-from dataclasses import dataclass, field
-from typing import Dict, Iterator, List, Optional, Tuple, Union
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Dict
+from typing import Iterator
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 
 @dataclass()
@@ -18,8 +24,11 @@ class CharacterPropertyResults:
 
     @property
     def Missed(self) -> List[str]:
-        return [target for target, target_value in self.Target.items() if
-                target in self.Total and self.Total[target] < target_value]
+        return [
+            target
+            for target, target_value in self.Target.items()
+            if target in self.Total and self.Total[target] < target_value
+        ]
 
     def as_markdown(self) -> str:
         """
@@ -30,26 +39,29 @@ class CharacterPropertyResults:
         """
         name_width = max(len("Name"), max(len(name) for name in self.Total))
         max_value_header_width = max(len(header_name) for header_name, _ in self)
-        value_width = max(max_value_header_width, max(len(str(value)) for value in self.Total.values()))
+        value_width = max(
+            max_value_header_width,
+            max(len(str(value)) for value in self.Total.values()),
+        )
 
+        value_widths = {column_name: max(len(column_name), max(len(str(value)) for value in column_data.values())) for column_name, column_data in self}
         name_format = "{0:" + str(name_width) + "}"
         value_format = "{0:<" + str(value_width) + "}"
 
         # Table header
-        as_string = name_format.format("Name")
+        as_string = f"| {name_format.format('Name')} |"
         for column_name, _ in self:
-            as_string += " | " + value_format.format(column_name)
+            as_string += f" {value_format.format(column_name)} |"
 
         # Header separator
-        as_string += "\n" + "-" * name_width
+        as_string += "\n| " + "-" * name_width + " |"
         for _, _ in self:
-            as_string += " | " + "-" * value_width
+            as_string += f" {'-' * value_width}  |"
 
         # Table rows
         for row_name in self.Total:
-            as_string += "\n" + name_format.format(row_name)
+            as_string += f"\n| {name_format.format(row_name)} |"
             for column_name, column_data in self:
-                as_string += " | "
                 row_data = "-"
                 if column_name == "Missed":
                     if row_name in self.Missed:
@@ -58,19 +70,25 @@ class CharacterPropertyResults:
                         row_data = "NO"
                 elif row_name in column_data:
                     row_data = column_data[row_name]
-                as_string += value_format.format(row_data)
+                as_string += f" {value_format.format(row_data)} |"
 
         return as_string
 
 
 class SkillResults(CharacterPropertyResults):
-    def __init__(self,
-                 rating_values: Dict[str, int] = None,
-                 total_values: Dict[str, int] = None,
-                 target_values: Dict[str, int] = None):
-        super().__init__(total_values if total_values is not None else dict(), 
-                         target_values if target_values is not None else dict())
-        self.Rating: Dict[str, int] = rating_values if rating_values is not None else dict()
+    def __init__(
+        self,
+        rating_values: Dict[str, int] = None,
+        total_values: Dict[str, int] = None,
+        target_values: Dict[str, int] = None,
+    ):
+        super().__init__(
+            total_values if total_values is not None else dict(),
+            target_values if target_values is not None else dict(),
+        )
+        self.Rating: Dict[str, int] = (
+            rating_values if rating_values is not None else dict()
+        )
 
     def __iter__(self) -> Iterator[Tuple[str, Union[Dict[str, int], List[str]]]]:
         yield "Rating", self.Rating
@@ -106,8 +124,12 @@ class XPCost:
         value_width = max(len("Cost"), max(len(str(value)) for _, value in self))
 
         def format_row(name: str, data: Union[str, int], prefix: str = "\n") -> str:
-            return prefix + ("{0:" + str(name_width) + "}").format(name) + " | " + (
-                    "{0:<" + str(value_width) + "}").format(data)
+            return (
+                prefix
+                + ("{0:" + str(name_width) + "}").format(name)
+                + " | "
+                + ("{0:<" + str(value_width) + "}").format(data)
+            )
 
         # Table header + separator
         as_string = format_row("Name", "Cost", prefix="")

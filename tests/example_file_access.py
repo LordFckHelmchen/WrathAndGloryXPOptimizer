@@ -1,13 +1,18 @@
 import json
 from pathlib import Path
-from typing import Any, Callable, Dict, TextIO
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import TextIO
 
 EXAMPLE_FILE = Path("tests/example_file.json")
 EXPECTED_RESULTS_SUFFIX = "_expected_results"
 EXPECTED_RESULTS_EXTENSIONS = ["md", "json"]
 
 
-def access_expected_result_files(access_function: Callable[[TextIO], Any], mode="r") -> Dict[str, Any]:
+def access_expected_result_files(
+    access_function: Callable[[TextIO], Any], mode="r"
+) -> Dict[str, Any]:
     """
     Applies a function to the expected results files.
 
@@ -25,8 +30,10 @@ def access_expected_result_files(access_function: Callable[[TextIO], Any], mode=
     """
     return_values = {}
     for extension in EXPECTED_RESULTS_EXTENSIONS:
-        expected_results_file \
-            = EXAMPLE_FILE.parent / f"{EXAMPLE_FILE.stem}{EXPECTED_RESULTS_SUFFIX}.{extension}"
+        expected_results_file = (
+            EXAMPLE_FILE.parent
+            / f"{EXAMPLE_FILE.stem}{EXPECTED_RESULTS_SUFFIX}.{extension}"
+        )
         with open(expected_results_file, mode=mode) as file:
             return_values[extension] = access_function(file)
     return return_values
@@ -58,7 +65,10 @@ def get_example_data() -> Dict[str, dict]:
     def access_function(file: TextIO) -> Any:
         return file.read()
 
-    return {"target_values": load_target_values(), "expected_results": access_expected_result_files(access_function)}
+    return {
+        "target_values": load_target_values(),
+        "expected_results": access_expected_result_files(access_function),
+    }
 
 
 def create_expected_results() -> None:  # pragma: nocover
@@ -81,5 +91,5 @@ def create_expected_results() -> None:  # pragma: nocover
     access_expected_result_files(access_function, mode="w")
 
 
-if __name__ == '__main__':  # pragma: nocover
+if __name__ == "__main__":  # pragma: nocover
     create_expected_results()

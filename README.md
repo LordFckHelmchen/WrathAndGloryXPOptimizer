@@ -13,8 +13,8 @@
 
 ## Overview
 
-Ever wondered if it is better to choose *Agility* over separate points into *Ballistic Skill* & *Stealth*? Ever thought
-that your current character has only *Intellect* but no points left for anything else?
+Ever wondered if it is better to choose _Agility_ over separate points into _Ballistic Skill_ & _Stealth_? Ever thought
+that your current character has only _Intellect_ but no points left for anything else?
 
 This repo contains a Mixed-Integer Non-Linear Programming (MI-NLP) optimization solution to spending the optimal amount
 of XP on selected attributes, skills & traits in the role-playing
@@ -22,14 +22,14 @@ game [Wrath & Glory by Cubicle 7](https://www.cubicle7games.com/our-games/wrath-
 
 For simple character management, I recommend using
 the [Character Forge @ Doctors of Doom](https://www.doctors-of-doom.com/forge/my-characters). The XP optimizer can then
-minimize the spent XP for your created character. Just pass in your desired target values (e.g., the total values for *
-Cunning*, *Tech* & *Deception* and your desired *Strength*), and the optimizer will figure out the best distribution
+minimize the spent XP for your created character. Just pass in your desired target values (e.g., the total values for _
+Cunning_, _Tech_ & _Deception_ and your desired _Strength_), and the optimizer will figure out the best distribution
 under minimal XP.
 
 If you encounter any errors/wrong numbers please post your input & the expected values, so I can debug them. If you have
 any recommendations, feel free to leave some comments.
 
-The optimizer uses v2.1 of the core rules. It does not take into account any bonuses or prerequisites from species and 
+The optimizer uses v2.1 of the core rules. It does not take into account any bonuses or prerequisites from species and
 archetypes - but these should be fine given that they use the same XP cost tables.
 
 The theoretical background around the involved formulas can be found [here](docs/theoretical_background.md)
@@ -49,21 +49,21 @@ The theoretical background around the involved formulas can be found [here](docs
 - Install Python, if not already done.
 - Switch to folder of this project, open terminal & install requirements
 
-   ```Bash
-   pip install -r requirements.txt
-   ```
+  ```Bash
+  pip install -r requirements.txt
+  ```
 
 - Try, if it works (shows help content)
 
-   ```Bash
-   python3 optimize-xp --help
-   ```
+  ```Bash
+  python3 optimize-xp --help
+  ```
 
 ## Usage
 
 ### NOTES
 
-- You always have to specify the *tier* of your character!
+- You always have to specify the _tier_ of your character!
 - The optimizer takes the tree-of-learning rule into account, but assigns the skill ratings randomly (within the min-xp
   constraint). Simply move the 1s around to your liking - the xp cost stay the same.
 
@@ -71,12 +71,12 @@ The theoretical background around the involved formulas can be found [here](docs
 
 - TODO
 
-Please see the `Command-line Reference <Usage_>`_ for details.
+Please see the [Command-line Reference](docs/usage.rst) for details.
 
 The CLI takes a JSON file as input with your tier, and your target values (see
 tests/example_file.json for an example).
 
-Let's say you want to optimize your *Tier* 1 character with *Strength* 3 and *Max Wounds* 5. First create a file (
+Let's say you want to optimize your _Tier_ 1 character with _Strength_ 3 and _Max Wounds_ 5. First create a file (
 e.g. `my_file.json`) with the following content:
 
 ```json
@@ -97,15 +97,15 @@ which will output a Markdown table showing the different properties, their (tota
 
 #### A more complex example
 
-If you have a higher-level character and want to optimize the following properties at *Tier* 3
+If you have a higher-level character and want to optimize the following properties at _Tier_ 3
 
-- *Agility* 5
-- *BallisticSkill* 11
-- *Cunning* 7
-- *Deception* 8
-- *Stealth* 12
-- *Defence* 6 (note the British spelling!)
-- *Max Wounds* 10
+- _Agility_ 5
+- _BallisticSkill_ 11
+- _Cunning_ 7
+- _Deception_ 8
+- _Stealth_ 12
+- _Defence_ 6 (note the British spelling!)
+- _Max Wounds_ 10
 
 then create a file (e.g. `my_file.json`) with the following content:
 
@@ -141,7 +141,7 @@ Contributions are very welcome. To learn more, see the [Contributor Guide](docs/
 ## License
 
 Distributed under the terms of the [MIT license](https://opensource.org/licenses/MIT),
-*Wrath & Glory XP Optimizer* is free and open source software.
+_Wrath & Glory XP Optimizer_ is free and open source software.
 
 ## Issues
 

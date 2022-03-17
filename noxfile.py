@@ -7,8 +7,7 @@ from textwrap import dedent
 import nox
 
 try:
-    from nox_poetry import Session
-    from nox_poetry import session
+    from nox_poetry import Session, session
 except ImportError:
     message = f"""\
     Nox failed to import the 'nox-poetry' package.
@@ -20,8 +19,8 @@ except ImportError:
 
 
 package = "wrath_and_glory_xp_optimizer"
-main_python_version = "3.8"
-# TODO: Add "3.9", "3.7", "3.6"
+main_python_version = "3.9"
+# TODO: Add "3.8", "3.7", "3.6"
 python_versions = [main_python_version]
 nox.options.sessions = (
     "pre-commit",
@@ -29,8 +28,6 @@ nox.options.sessions = (
     "mypy",
     "tests",
     "typeguard",
-    # "xdoctest",  # TODO: Consider if we will need it or not
-    "docs-build",
 )
 
 
@@ -160,40 +157,3 @@ def typeguard(session: Session) -> None:
     session.install(".")
     session.install("pytest", "typeguard", "pygments")
     session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
-
-
-@session(python=python_versions)
-def xdoctest(session: Session) -> None:
-    """Run examples with xdoctest."""
-    args = session.posargs or ["all"]
-    session.install(".")
-    session.install("xdoctest[colors]")
-    session.run("python", "-m", "xdoctest", package, *args)
-
-
-@session(name="docs-build", python=main_python_version)
-def docs_build(session: Session) -> None:
-    """Build the documentation."""
-    args = session.posargs or ["docs", "docs/_build"]
-    session.install(".")
-    session.install("sphinx", "sphinx-click", "sphinx-rtd-theme")
-
-    build_dir = Path("docs", "_build")
-    if build_dir.exists():
-        shutil.rmtree(build_dir)
-
-    session.run("sphinx-build", *args)
-
-
-@session(python=main_python_version)
-def docs(session: Session) -> None:
-    """Build and serve the documentation with live reloading on file changes."""
-    args = session.posargs or ["--open-browser", "docs", "docs/_build"]
-    session.install(".")
-    session.install("sphinx", "sphinx-autobuild", "sphinx-click", "sphinx-rtd-theme")
-
-    build_dir = Path("docs", "_build")
-    if build_dir.exists():
-        shutil.rmtree(build_dir)
-
-    session.run("sphinx-autobuild", *args)

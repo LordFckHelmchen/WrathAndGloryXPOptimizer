@@ -8,11 +8,11 @@ from typing import TextIO
 import click
 
 from wrath_and_glory_xp_optimizer import __version__
-from wrath_and_glory_xp_optimizer.character_properties import Attributes
-from wrath_and_glory_xp_optimizer.character_properties import IntBounds
-from wrath_and_glory_xp_optimizer.character_properties import Skills
-from wrath_and_glory_xp_optimizer.character_properties import Tier
-from wrath_and_glory_xp_optimizer.character_properties import Traits
+from wrath_and_glory_xp_optimizer.character_properties.attributes import Attributes
+from wrath_and_glory_xp_optimizer.character_properties.int_bounds import IntBounds
+from wrath_and_glory_xp_optimizer.character_properties.skills import Skills
+from wrath_and_glory_xp_optimizer.character_properties.tier import Tier
+from wrath_and_glory_xp_optimizer.character_properties.traits import Traits
 from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
 from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer
 from wrath_and_glory_xp_optimizer.optimizer_core import optimize_xp
@@ -94,7 +94,7 @@ def cli(file: TextIO, output_format: str, is_verbose: bool):
     """
     XP Optimizer for Wrath & Glory (see README.md for more details).
 
-    Target values for attributes, skills & most traits (e.g. conviction, max. wounds, ...) can be given and the
+    Target values for attributes, skills & most traits (e.g. conviction, max_value. wounds, ...) can be given and the
     function will try to optimize the spent XP, e.g. optimally increase the ratings for attributes & skills with a
     minimum amount of xp.
 

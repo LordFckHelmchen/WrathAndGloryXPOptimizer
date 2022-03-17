@@ -8,7 +8,7 @@ from tests.example_file_access import EXAMPLE_FILE
 from tests.example_file_access import EXPECTED_RESULTS_EXTENSIONS
 from tests.example_file_access import get_example_data
 
-from wrath_and_glory_xp_optimizer.character_properties import Tier
+from wrath_and_glory_xp_optimizer.character_properties.tier import Tier
 from wrath_and_glory_xp_optimizer.optimize_xp import cli
 
 

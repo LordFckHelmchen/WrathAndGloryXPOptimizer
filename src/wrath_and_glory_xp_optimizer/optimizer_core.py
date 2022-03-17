@@ -1,7 +1,6 @@
 import json
 from contextlib import contextmanager
-from typing import Dict
-from typing import Iterator
+from typing import ContextManager, Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -13,10 +12,10 @@ from gekko import GEKKO
 from gekko.gk_operators import GK_Intermediate
 from gekko.gk_variable import GKVariable
 
-from wrath_and_glory_xp_optimizer.character_properties import Attributes
-from wrath_and_glory_xp_optimizer.character_properties import Skills
-from wrath_and_glory_xp_optimizer.character_properties import Tier
-from wrath_and_glory_xp_optimizer.character_properties import Traits
+from wrath_and_glory_xp_optimizer.character_properties.attributes import Attributes
+from wrath_and_glory_xp_optimizer.character_properties.skills import Skills
+from wrath_and_glory_xp_optimizer.character_properties.tier import Tier
+from wrath_and_glory_xp_optimizer.character_properties.traits import Traits
 from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
 from wrath_and_glory_xp_optimizer.optimizer_results import (
     AttributeSkillOptimizerResults,
@@ -27,7 +26,7 @@ from wrath_and_glory_xp_optimizer.optimizer_results import XPCost
 
 
 @contextmanager
-def managed_gekko_solver(*args, **kwargs) -> Iterator[GEKKO]:
+def managed_gekko_solver(*args, **kwargs) -> ContextManager[GEKKO]:
     """
     Context manager for the GEKKO class, to automatically clean-up temp. files & folders after solving.
     """
@@ -45,17 +44,17 @@ class AttributeSkillOptimizer:
         "minlp_maximum_iterations 500",
         "minlp_max_iter_with_int_sol 50",  # minlp iterations with integer solution
         "minlp_as_nlp 0",  # treat minlp as nlp
-        "nlp_maximum_iterations 50",  # nlp sub-problem max iterations
+        "nlp_maximum_iterations 50",  # nlp sub-problem max_value iterations
         "minlp_branch_method 1",  # 1 = depth first, 2 = breadth first
         "minlp_integer_tol 0.05",  # maximum deviation from whole number
         "minlp_gap_tol 0.01",
     )  # convergence tolerance
 
     def __init__(
-        self,
-        target_values: Dict[str, int],
-        is_verbose: bool = False,
-        solver_options: Tuple[str, ...] = DEFAULT_SOLVER_OPTIONS,
+            self,
+            target_values: Dict[str, int],
+            is_verbose: bool = False,
+            solver_options: Tuple[str, ...] = DEFAULT_SOLVER_OPTIONS,
     ):
         """
         Parameters
@@ -106,16 +105,16 @@ class AttributeSkillOptimizer:
 
         for target_name, target_value in target_values.items():
             if not (
-                target_name == Tier.full_name
-                or Attributes.get_by_name(target_name).value.is_valid_rating(
-                    target_value
-                )
-                or Skills.get_by_name(target_name).value.is_valid_total_rating(
-                    target_value
-                )
-                or Traits.get_by_name(target_name).value.is_valid_rating(
-                    target_value, tier
-                )
+                    target_name == Tier.full_name
+                    or Attributes.get_by_name(target_name).value.is_valid_rating(
+                target_value
+            )
+                    or Skills.get_by_name(target_name).value.is_valid_total_rating(
+                target_value
+            )
+                    or Traits.get_by_name(target_name).value.is_valid_rating(
+                target_value, tier
+            )
             ):
                 return False
 
@@ -158,13 +157,13 @@ class AttributeSkillOptimizer:
                         skill.value.related_attribute, attribute_ratings
                     ).value
                     skill_ratings[i].value = (
-                        self.target_values[skill.name] - attribute_rating
+                            self.target_values[skill.name] - attribute_rating
                     )
 
             # Target value constraints: Target values must be met or larger.
             for target, target_value in self.target_values.items():
                 if (
-                    target_enum := Attributes.get_by_name(target)
+                        target_enum := Attributes.get_by_name(target)
                 ) != Attributes.INVALID:
                     solver.Equation(
                         self._get_gekko_var(target_enum, attribute_ratings)
@@ -184,7 +183,7 @@ class AttributeSkillOptimizer:
                         >= target_value
                     )
 
-            # Tree of learning constraint: number of non-zero skill ratings >= max. skill rating
+            # Tree of learning constraint: number of non-zero skill ratings >= max_value. skill rating
             epsilon_for_zero = 0.5  # threshold for a "zero" value
             number_of_nonzero_skill_ratings = solver.sum(
                 [
@@ -230,11 +229,11 @@ class AttributeSkillOptimizer:
             )
 
     def _compile_results(
-        self,
-        attribute_ratings: List[GKVariable],
-        skill_ratings: List[GKVariable],
-        attribute_cost: GK_Intermediate,
-        skill_cost: GK_Intermediate,
+            self,
+            attribute_ratings: List[GKVariable],
+            skill_ratings: List[GKVariable],
+            attribute_cost: GK_Intermediate,
+            skill_cost: GK_Intermediate,
     ):
         all_ratings = attribute_ratings + skill_ratings
 
@@ -261,7 +260,7 @@ class AttributeSkillOptimizer:
 
     @staticmethod
     def _get_gekko_var(
-        attribute_or_skill: Union[Attributes, Skills], ratings: List[GKVariable]
+            attribute_or_skill: Union[Attributes, Skills], ratings: List[GKVariable]
     ) -> Optional[GKVariable]:
         return next(
             (
@@ -272,9 +271,9 @@ class AttributeSkillOptimizer:
         )
 
     def _get_property_result(
-        self,
-        property_class: Union[Type[Attributes], Type[Skills], Type[Traits]],
-        all_ratings: List[GKVariable],
+            self,
+            property_class: Union[Type[Attributes], Type[Skills], Type[Traits]],
+            all_ratings: List[GKVariable],
     ) -> CharacterPropertyResults:
 
         property_result = CharacterPropertyResults()
@@ -288,16 +287,16 @@ class AttributeSkillOptimizer:
                     property_name
                 ]
                 if (
-                    property_result.Target[property_name]
-                    != property_result.Total[property_name]
+                        property_result.Target[property_name]
+                        != property_result.Total[property_name]
                 ):
                     property_result.Missed.append(property_name)
         return property_result
 
     def _get_total_value(
-        self,
-        target_enum: Union[Attributes, Skills, Traits],
-        all_ratings: List[GKVariable],
+            self,
+            target_enum: Union[Attributes, Skills, Traits],
+            all_ratings: List[GKVariable],
     ) -> int:
         if target_enum in Attributes:
             rating = 0
@@ -315,7 +314,7 @@ class AttributeSkillOptimizer:
 
 
 def optimize_xp(
-    target_values: Dict[str, int], is_verbose: bool = False
+        target_values: Dict[str, int], is_verbose: bool = False
 ) -> AttributeSkillOptimizerResults:
     """
     Parameters

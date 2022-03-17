@@ -1,12 +1,11 @@
 import unittest
 
-from wrath_and_glory_xp_optimizer.character_properties import Attribute
-from wrath_and_glory_xp_optimizer.character_properties import Attributes
-from wrath_and_glory_xp_optimizer.character_properties import IntBounds
-from wrath_and_glory_xp_optimizer.character_properties import Skill
-from wrath_and_glory_xp_optimizer.character_properties import Skills
-from wrath_and_glory_xp_optimizer.character_properties import Trait
-from wrath_and_glory_xp_optimizer.character_properties import Traits
+from wrath_and_glory_xp_optimizer.character_properties.attributes import Attribute
+from wrath_and_glory_xp_optimizer.character_properties.attributes import Attributes
+from wrath_and_glory_xp_optimizer.character_properties.int_bounds import IntBounds
+from wrath_and_glory_xp_optimizer.character_properties.skills import Skill
+from wrath_and_glory_xp_optimizer.character_properties.skills import Skills
+from wrath_and_glory_xp_optimizer.character_properties.traits import Traits
 
 
 class TestIntBounds(unittest.TestCase):

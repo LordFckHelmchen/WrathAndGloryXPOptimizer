@@ -3,11 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/WrathAndGloryOptimizer.svg)](https://pypi.org/project/WrathAndGloryOptimizer/)
 [![Python Version](https://img.shields.io/pypi/pyversions/WrathAndGloryOptimizer)](https://pypi.org/project/WrathAndGloryOptimizer)
 [![License](https://img.shields.io/pypi/l/WrathAndGloryOptimizer)](https://opensource.org/licenses/MIT)
-
-[![Read the Docs](https://img.shields.io/readthedocs/WrathAndGloryOptimizer/latest.svg?label=Read%20the%20Docs)](https://WrathAndGloryOptimizer.readthedocs.io)
 [![Tests](https://github.com/LordFckHelmchen/WrathAndGloryOptimizer/workflows/Tests/badge.svg)](https://github.com/LordFckHelmchen/WrathAndGloryOptimizer/actions?workflow=Tests)
-[![Codecov](https://codecov.io/gh/LordFckHelmchen/WrathAndGloryOptimizer/branch/main/graph/badge.svg)](https://codecov.io/gh/LordFckHelmchen/WrathAndGloryOptimizer)
-
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -133,10 +129,6 @@ For a list of available CLI parameters use:
 ```Bash
 python optimize-xp --help
 ```
-
-## Contributing
-
-Contributions are very welcome. To learn more, see the [Contributor Guide](docs/contributing.rst)
 
 ## License
 

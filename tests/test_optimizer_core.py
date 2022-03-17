@@ -2,11 +2,11 @@ import unittest
 from dataclasses import dataclass
 from typing import Dict
 
-from wrath_and_glory_xp_optimizer.character_properties import Attributes
-from wrath_and_glory_xp_optimizer.character_properties import IntBounds
-from wrath_and_glory_xp_optimizer.character_properties import Skills
-from wrath_and_glory_xp_optimizer.character_properties import Tier
-from wrath_and_glory_xp_optimizer.character_properties import Traits
+from wrath_and_glory_xp_optimizer.character_properties.attributes import Attributes
+from wrath_and_glory_xp_optimizer.character_properties.int_bounds import IntBounds
+from wrath_and_glory_xp_optimizer.character_properties.skills import Skills
+from wrath_and_glory_xp_optimizer.character_properties.tier import Tier
+from wrath_and_glory_xp_optimizer.character_properties.traits import Traits
 from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
 from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer
 from wrath_and_glory_xp_optimizer.optimizer_core import managed_gekko_solver

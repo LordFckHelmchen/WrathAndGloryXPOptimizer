@@ -2,9 +2,9 @@ import unittest
 
 from tests.example_file_access import get_example_data
 
-from wrath_and_glory_xp_optimizer.character_properties import Attributes
-from wrath_and_glory_xp_optimizer.character_properties import Skills
-from wrath_and_glory_xp_optimizer.character_properties import Traits
+from wrath_and_glory_xp_optimizer.character_properties.attributes import Attributes
+from wrath_and_glory_xp_optimizer.character_properties.skills import Skills
+from wrath_and_glory_xp_optimizer.character_properties.traits import Traits
 from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer
 from wrath_and_glory_xp_optimizer.optimizer_results import CharacterPropertyResults
 

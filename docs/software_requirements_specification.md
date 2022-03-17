@@ -1,4 +1,4 @@
-# Software Requirements
+Software Requirements
 
 ### User requirements
 

@@ -12,17 +12,17 @@ from gekko import GEKKO
 from gekko.gk_operators import GK_Intermediate
 from gekko.gk_variable import GKVariable
 
-from wrath_and_glory_xp_optimizer.character_properties.attributes import Attributes
-from wrath_and_glory_xp_optimizer.character_properties.skills import Skills
-from wrath_and_glory_xp_optimizer.character_properties.tier import Tier
-from wrath_and_glory_xp_optimizer.character_properties.traits import Traits
-from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
-from wrath_and_glory_xp_optimizer.optimizer_results import (
+from .character_properties.attributes import Attributes
+from .character_properties.skills import Skills
+from .character_properties.tier import Tier
+from .character_properties.traits import Traits
+from .exceptions import InvalidTargetValueException
+from .optimizer_results import (
     AttributeSkillOptimizerResults,
 )
-from wrath_and_glory_xp_optimizer.optimizer_results import CharacterPropertyResults
-from wrath_and_glory_xp_optimizer.optimizer_results import SkillResults
-from wrath_and_glory_xp_optimizer.optimizer_results import XPCost
+from .optimizer_results import CharacterPropertyResults
+from .optimizer_results import SkillResults
+from .optimizer_results import XPCost
 
 
 @contextmanager
@@ -104,17 +104,9 @@ class AttributeSkillOptimizer:
             return False
 
         for target_name, target_value in target_values.items():
-            if not (
-                    target_name == Tier.full_name
-                    or Attributes.get_by_name(target_name).value.is_valid_rating(
-                target_value
-            )
-                    or Skills.get_by_name(target_name).value.is_valid_total_rating(
-                target_value
-            )
-                    or Traits.get_by_name(target_name).value.is_valid_rating(
-                target_value, tier
-            )
+            if not (target_name == Tier.full_name or Attributes.get_by_name(target_name).value.is_valid_rating(target_value)
+                    or Skills.get_by_name(target_name).value.is_valid_total_rating(target_value)
+                    or Traits.get_by_name(target_name).value.is_valid_rating(target_value, tier)
             ):
                 return False
 
@@ -224,9 +216,7 @@ class AttributeSkillOptimizer:
 
             solver.solve(disp=self.is_verbose)
 
-            return self._compile_results(
-                attribute_ratings, skill_ratings, attribute_cost, skill_cost
-            )
+            return self._compile_results(attribute_ratings, skill_ratings, attribute_cost, skill_cost)
 
     def _compile_results(
             self,

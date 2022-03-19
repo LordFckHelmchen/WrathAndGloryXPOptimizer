@@ -7,15 +7,15 @@ from typing import TextIO
 
 import click
 
-from wrath_and_glory_xp_optimizer import __version__
-from wrath_and_glory_xp_optimizer.character_properties.attributes import Attributes
-from wrath_and_glory_xp_optimizer.character_properties.int_bounds import IntBounds
-from wrath_and_glory_xp_optimizer.character_properties.skills import Skills
-from wrath_and_glory_xp_optimizer.character_properties.tier import Tier
-from wrath_and_glory_xp_optimizer.character_properties.traits import Traits
-from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
-from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer
-from wrath_and_glory_xp_optimizer.optimizer_core import optimize_xp
+from . import __version__
+from .character_properties.attributes import Attributes
+from .character_properties.int_bounds import IntBounds
+from .character_properties.skills import Skills
+from .character_properties.tier import Tier
+from .character_properties.traits import Traits
+from .exceptions import InvalidTargetValueException
+from .optimizer_core import AttributeSkillOptimizer
+from .optimizer_core import optimize_xp
 
 
 def print_target_values_text(click_context: click.Context, _: Any, value: Any) -> None:
@@ -80,7 +80,7 @@ def print_target_values_text(click_context: click.Context, _: Any, value: Any) -
 )
 @click.version_option(
     version=f"{__version__} (Wrath & Glory core rules version "
-    f"{AttributeSkillOptimizer.WRATH_AND_GLORY_CORE_RULES_VERSION})"
+            f"{AttributeSkillOptimizer.WRATH_AND_GLORY_CORE_RULES_VERSION})"
 )
 @click.option(
     "--help-target-values",

@@ -158,7 +158,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
         )
         self.assertEqual(Tier.rating_bounds.min, optimizer.tier)
 
-    def test__get_gekko_var_expect_StopIteration_for_missing_property(self):
+    def test_get_gekko_var_expect_StopIteration_for_missing_property(self):
         with managed_gekko_solver(remote=False) as solver:
             # Define variables with optimized initial values.
             gekko_variables = [

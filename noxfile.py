@@ -1,5 +1,4 @@
 """Nox sessions."""
-import shutil
 import sys
 from pathlib import Path
 from textwrap import dedent
@@ -16,7 +15,6 @@ except ImportError:
 
     {sys.executable} -m pip install nox-poetry"""
     raise SystemExit(dedent(message))
-
 
 package = "wrath_and_glory_xp_optimizer"
 main_python_version = "3.9"
@@ -59,7 +57,7 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
         text = hook.read_text()
         bindir = repr(session.bin)[1:-1]  # strip quotes
         if not (
-            Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text
+                Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text
         ):
             continue
 

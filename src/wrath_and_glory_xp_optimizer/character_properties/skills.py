@@ -36,31 +36,21 @@ class Skills(PropertyEnum):
     # full names must be unique, to avoid Enum.unique() to remove duplicates.
     Athletics = Skill(full_name="Athletics", related_attribute=Attributes.Strength)
     Awareness = Skill(full_name="Awareness", related_attribute=Attributes.Intellect)
-    BallisticSkill = Skill(
-        full_name="Ballistic Skill", related_attribute=Attributes.Agility
-    )
+    BallisticSkill = Skill(full_name="Ballistic Skill", related_attribute=Attributes.Agility)
     Cunning = Skill(full_name="Cunning", related_attribute=Attributes.Fellowship)
     Deception = Skill(full_name="Deception", related_attribute=Attributes.Fellowship)
     Insight = Skill(full_name="Insight", related_attribute=Attributes.Fellowship)
-    Intimidation = Skill(
-        full_name="Intimidation", related_attribute=Attributes.Willpower
-    )
-    Investigation = Skill(
-        full_name="Investigation", related_attribute=Attributes.Intellect
-    )
+    Intimidation = Skill(full_name="Intimidation", related_attribute=Attributes.Willpower)
+    Investigation = Skill(full_name="Investigation", related_attribute=Attributes.Intellect)
     Leadership = Skill(full_name="Leadership", related_attribute=Attributes.Willpower)
     Medicae = Skill(full_name="Medicae", related_attribute=Attributes.Intellect)
-    Persuasion = Skill(full_name="Persuasion", related_attribute=Attributes.Willpower)
+    Persuasion = Skill(full_name="Fellowship", related_attribute=Attributes.Willpower)
     Pilot = Skill(full_name="Pilot", related_attribute=Attributes.Agility)
-    PsychicMastery = Skill(
-        full_name="Psychic Mastery", related_attribute=Attributes.Willpower
-    )
+    PsychicMastery = Skill(full_name="Psychic Mastery", related_attribute=Attributes.Willpower)
     Scholar = Skill(full_name="Scholar", related_attribute=Attributes.Intellect)
     Stealth = Skill(full_name="Stealth", related_attribute=Attributes.Agility)
     Survival = Skill(full_name="Survival", related_attribute=Attributes.Willpower)
     Tech = Skill(full_name="Tech", related_attribute=Attributes.Intellect)
-    WeaponSkill = Skill(
-        full_name="Weapon Skill", related_attribute=Attributes.Initiative
-    )
+    WeaponSkill = Skill(full_name="Weapon Skill", related_attribute=Attributes.Initiative)
     # noinspection PyArgumentList
     INVALID = InvalidSkill()

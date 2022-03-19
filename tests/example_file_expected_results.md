@@ -29,7 +29,7 @@
 | Investigation  |        0 |       1 |        - | -        |
 | Leadership     |        0 |       1 |        - | -        |
 | Medicae        |        0 |       1 |        - | -        |
-| Persuasion     |        1 |       2 |        - | -        |
+| Persuasion     |        1 |       4 |        - | -        |
 | Pilot          |        1 |       8 |        - | -        |
 | PsychicMastery |        0 |       1 |        - | -        |
 | Scholar        |        0 |       1 |        - | -        |

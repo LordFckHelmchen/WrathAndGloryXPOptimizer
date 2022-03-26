@@ -57,7 +57,7 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
         text = hook.read_text()
         bindir = repr(session.bin)[1:-1]  # strip quotes
         if not (
-                Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text
+            Path("A") == Path("a") and bindir.lower() in text.lower() or bindir in text
         ):
             continue
 
@@ -113,7 +113,7 @@ def safety(session: Session) -> None:
 @session(python=python_versions)
 def mypy(session: Session) -> None:
     """Type-check using mypy."""
-    args = session.posargs or ["src", "tests", "docs/conf.py"]
+    args = session.posargs or ["src", "tests"]
     session.install(".")
     session.install("mypy", "pytest")
     session.run("mypy", *args)

@@ -12,7 +12,7 @@ from wrath_and_glory_xp_optimizer.optimizer_results import CharacterPropertyResu
 class TestPropertyResults(unittest.TestCase):
     def test_missed_getter_expect_name_of_missed_value_if_total_is_smaller_than_target(
         self,
-    ):
+    ) -> None:
         value_name = "val2"
         target_value = 3
         total_value = target_value - 1
@@ -21,7 +21,9 @@ class TestPropertyResults(unittest.TestCase):
         )
         self.assertEqual([value_name], result.Missed)
 
-    def test_missed_getter_expect_empty_if_total_is_equal_or_larger_than_target(self):
+    def test_missed_getter_expect_empty_if_total_is_equal_or_larger_than_target(
+        self,
+    ) -> None:
         value_name = "val2"
         target_value = 3
         for total_value in [target_value, target_value + 1]:
@@ -32,10 +34,10 @@ class TestPropertyResults(unittest.TestCase):
                 any(result.Missed), f"Unexpected missed values found: {result.Missed}"
             )
 
-    def test_formatting_functions_expect_match_to_stored_format(self):
+    def test_formatting_functions_expect_match_to_stored_format(self) -> None:
         example_data = get_example_data()
         result = AttributeSkillOptimizer(
-            example_data["target_values"]
+            example_data.target_values
         ).optimize_selection()
 
         self.maxDiff = None  # Show diff for long comparisons.
@@ -45,13 +47,13 @@ class TestPropertyResults(unittest.TestCase):
             with self.subTest(i=extension):
                 # Remove trailing whitespaces & newlines.
                 self.assertEqual(
-                    example_data["expected_results"][extension].rstrip(),
+                    example_data.expected_results[extension].rstrip(),
                     formatter(result).rstrip(),
                 )
 
     def test_as_markdown_with_totals_below_equal_and_above_targets_expect_missed_only_for_below_target_values(
         self,
-    ):
+    ) -> None:
         expected_string = (
             "| Name           |   Total |   Target | Missed   |\n"
             "|----------------|---------|----------|----------|\n"

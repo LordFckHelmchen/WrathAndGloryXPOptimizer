@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Generator
 
 
 class _PropertyEnum(Enum):
@@ -16,7 +17,7 @@ class _PropertyEnum(Enum):
         )
 
     @classmethod
-    def get_valid_members(cls):
+    def get_valid_members(cls) -> Generator:
         return (
             cls._member_map_[name]
             for name in cls._member_names_

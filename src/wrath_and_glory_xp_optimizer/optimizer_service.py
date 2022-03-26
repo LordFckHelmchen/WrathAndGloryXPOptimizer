@@ -35,7 +35,7 @@ app = Flask(__name__)
 MAX_ARGUMENT_COUNT_FOR_LOGGING = 10
 
 
-def request_to_str(request: Request, prefix: str = ">>> ", suffix: str = " <<<"):
+def request_to_str(request: Request, prefix: str = ">>> ", suffix: str = " <<<") -> str:
     return (
         f"\n{prefix}HEADER{suffix}\n"
         f"{request.headers}"
@@ -47,7 +47,7 @@ def request_to_str(request: Request, prefix: str = ">>> ", suffix: str = " <<<")
 
 
 @app.route("/optimize_xp")
-def optimize_xp():
+def optimize_xp() -> str:
     if "target_values" not in request.args:
         app.logger.info(
             f"Request without 'target_values' received. {request_to_str(request)}"

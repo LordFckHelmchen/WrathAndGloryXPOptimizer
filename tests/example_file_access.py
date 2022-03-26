@@ -1,6 +1,7 @@
 import json
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import TextIO
@@ -9,10 +10,18 @@ EXAMPLE_FILE = Path("tests/example_file.json")
 EXPECTED_RESULTS_SUFFIX = "_expected_results"
 EXPECTED_RESULTS_EXTENSIONS = ["md", "json"]
 
+TargetValuesDict = Dict[str, int]
+ExampleDataDict = Dict[str, str]
+
+
+class FileAccessMode(Enum):
+    READ = "r"
+    WRITE = "w"
+
 
 def access_expected_result_files(
-    access_function: Callable[[TextIO], Any], mode="r"
-) -> Dict[str, Any]:
+    access_function: Callable[[TextIO], str], mode: FileAccessMode = FileAccessMode.READ
+) -> ExampleDataDict:
     """
     Applies a function to the expected results files.
 
@@ -21,7 +30,7 @@ def access_expected_result_files(
     access_function
         A function on the opened file handle of the expected results file.
     mode
-        The file opening mode (e.g. "r" or "w").
+        The file opening mode.
 
     Returns
     -------
@@ -34,12 +43,12 @@ def access_expected_result_files(
             EXAMPLE_FILE.parent
             / f"{EXAMPLE_FILE.stem}{EXPECTED_RESULTS_SUFFIX}.{extension}"
         )
-        with open(expected_results_file, mode=mode) as file:
+        with open(expected_results_file, mode=mode.value) as file:
             return_values[extension] = access_function(file)
     return return_values
 
 
-def load_target_values() -> Dict[str, int]:
+def load_target_values() -> TargetValuesDict:
     """
     Loads the target values from the example file.
 
@@ -48,11 +57,17 @@ def load_target_values() -> Dict[str, int]:
     target_values
     """
     with open(EXAMPLE_FILE) as file:
-        target_values = json.load(file)
+        target_values: TargetValuesDict = json.load(file)
     return target_values
 
 
-def get_example_data() -> Dict[str, dict]:
+@dataclass
+class ExampleDataContainer:
+    target_values: TargetValuesDict
+    expected_results: ExampleDataDict
+
+
+def get_example_data() -> ExampleDataContainer:
     """
     Loads the data from the example file & the according expected results.
 
@@ -62,13 +77,13 @@ def get_example_data() -> Dict[str, dict]:
         The target_values & expected results.
     """
 
-    def access_function(file: TextIO) -> Any:
+    def access_function(file: TextIO) -> str:
         return file.read()
 
-    return {
-        "target_values": load_target_values(),
-        "expected_results": access_expected_result_files(access_function),
-    }
+    return ExampleDataContainer(
+        target_values=load_target_values(),
+        expected_results=access_expected_result_files(access_function),
+    )
 
 
 def create_expected_results() -> None:  # pragma: nocover
@@ -79,7 +94,7 @@ def create_expected_results() -> None:  # pragma: nocover
 
     result = AttributeSkillOptimizer(load_target_values()).optimize_selection()
 
-    def access_function(file: TextIO) -> Any:
+    def access_function(file: TextIO) -> str:
         extension = Path(file.name).suffix.lower()
         if extension == ".json":
             file.write(result.as_json())
@@ -87,8 +102,9 @@ def create_expected_results() -> None:  # pragma: nocover
             file.write(result.as_markdown())
         else:
             file.write(str(result))
+        return ""  # Unused
 
-    access_expected_result_files(access_function, mode="w")
+    access_expected_result_files(access_function, mode=FileAccessMode.WRITE)
 
 
 if __name__ == "__main__":  # pragma: nocover

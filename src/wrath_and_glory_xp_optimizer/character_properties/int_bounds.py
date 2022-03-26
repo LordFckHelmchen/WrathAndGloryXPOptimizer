@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from typing import Iterator
 from typing import List
 from typing import Optional
 from typing import Union
@@ -31,7 +32,7 @@ class IntBounds:
         self._values: List[Optional[int]] = [min_value, max_value]
         self.sort()
 
-    def __add__(self, other: Union[int, IntBounds]):
+    def __add__(self, other: Union[int, IntBounds]) -> IntBounds:
         if other is None:
             return IntBounds(None, None)
 
@@ -56,24 +57,26 @@ class IntBounds:
     def __contains__(self, item: int) -> bool:
         return item in self.as_range()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return self._values.__iter__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__().replace(type(self).__name__, "Integer ")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{type(self).__name__} min={self.min}, max={self.max}>"
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, IntBounds) and self._values == other._values
 
-    def sort(self):
+    def sort(self) -> None:
         if self.are_valid():
             self._values.sort()
 
     def as_range(self) -> range:
-        return range(self.min, self.max + 1) if self.are_valid() else range(0, 0)
+        if self.are_valid():
+            return range(self.min, self.max + 1)
+        return range(0, 0)
 
     def are_valid(self) -> bool:
         return None not in self._values

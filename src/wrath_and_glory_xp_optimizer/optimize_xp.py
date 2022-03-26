@@ -80,7 +80,7 @@ def print_target_values_text(click_context: click.Context, _: Any, value: Any) -
 )
 @click.version_option(
     version=f"{__version__} (Wrath & Glory core rules version "
-            f"{AttributeSkillOptimizer.WRATH_AND_GLORY_CORE_RULES_VERSION})"
+    f"{AttributeSkillOptimizer.WRATH_AND_GLORY_CORE_RULES_VERSION})"
 )
 @click.option(
     "--help-target-values",
@@ -90,7 +90,7 @@ def print_target_values_text(click_context: click.Context, _: Any, value: Any) -
     expose_value=False,
     is_eager=True,
 )
-def cli(file: TextIO, output_format: str, is_verbose: bool):
+def cli(file: TextIO, output_format: str, is_verbose: bool) -> None:
     """
     XP Optimizer for Wrath & Glory (see README.md for more details).
 

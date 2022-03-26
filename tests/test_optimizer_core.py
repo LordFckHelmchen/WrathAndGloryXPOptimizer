@@ -45,26 +45,28 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
 
         return result
 
-    def assert_is_valid_target_values_dict(self, target_values: Dict):
+    def assert_is_valid_target_values_dict(self, target_values: Dict) -> None:
         self.assertTrue(
             AttributeSkillOptimizer.is_valid_target_values_dict(target_values),
             f"Valid target values dict was not detected: {target_values}",
         )
 
-    def assert_is_invalid_target_values_dict(self, target_values: Dict):
+    def assert_is_invalid_target_values_dict(self, target_values: Dict) -> None:
         self.assertFalse(
             AttributeSkillOptimizer.is_valid_target_values_dict(target_values),
             f"Expected target values dict to be invalid: {target_values}",
         )
 
-    def run_invalid_values_test(self, valid_key: str, value_bounds: IntBounds):
+    def run_invalid_values_test(self, valid_key: str, value_bounds: IntBounds) -> None:
         for invalid_value in ["1", 1.0, value_bounds.min - 1, value_bounds.max + 1]:
             with self.subTest(i=f"{valid_key}: {invalid_value}"):
                 target_values = self.get_minimal_valid_target_values()
                 target_values[valid_key] = invalid_value
                 self.assert_is_invalid_target_values_dict(target_values)
 
-    def test_optimize_selection_expect_no_missed_targets_and_expected_xp_cost(self):
+    def test_optimize_selection_expect_no_missed_targets_and_expected_xp_cost(
+        self,
+    ) -> None:
         selections = [
             IntendedSelection(
                 target_values={
@@ -108,7 +110,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
 
     def test_optimize_selection_with_no_target_values_expect_tier_1_cost_0_attributes_at_1_and_skills_at_0(
         self,
-    ):
+    ) -> None:
         target_values = dict()
         initial_attribute_total = 1
         initial_skill_rating = 0
@@ -135,7 +137,9 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
         self.assertDictEqual(expected_skill_totals, result.Skills.Total)
         self.assertEqual(expected_xp_costs, result.XPCost)
 
-    def test_init_with_unknown_target_values_expect_InvalidTargetValuesException(self):
+    def test_init_with_unknown_target_values_expect_InvalidTargetValuesException(
+        self,
+    ) -> None:
         invalid_target_values = {
             **self.get_minimal_valid_target_values(),
             Attributes.Strength.name: Attributes.Strength.value.rating_bounds.min,
@@ -149,7 +153,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
         with self.assertRaises(InvalidTargetValueException):
             AttributeSkillOptimizer(invalid_target_values)
 
-    def test_init_with_missing_tier_expect_tier_set_to_minimum(self):
+    def test_init_with_missing_tier_expect_tier_set_to_minimum(self) -> None:
         optimizer = AttributeSkillOptimizer(
             {
                 Attributes.Fellowship.name: Attributes.Fellowship.value.rating_bounds.min,
@@ -158,7 +162,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
         )
         self.assertEqual(Tier.rating_bounds.min, optimizer.tier)
 
-    def test_get_gekko_var_expect_StopIteration_for_missing_property(self):
+    def test_get_gekko_var_expect_StopIteration_for_missing_property(self) -> None:
         with managed_gekko_solver(remote=False) as solver:
             # Define variables with optimized initial values.
             gekko_variables = [
@@ -170,15 +174,15 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
                     Attributes.Fellowship, gekko_variables
                 )
 
-    def test_empty_dict_expect_False(self):
+    def test_empty_dict_expect_False(self) -> None:
         self.assert_is_invalid_target_values_dict(dict())
 
     def test_is_valid_target_values_dict_with_minimally_valid_target_values_expect_True(
         self,
-    ):
+    ) -> None:
         self.assert_is_valid_target_values_dict(self.get_minimal_valid_target_values())
 
-    def test_is_valid_target_values_dict_with_valid_keys_expect_true(self):
+    def test_is_valid_target_values_dict_with_valid_keys_expect_true(self) -> None:
         target_values = self.get_minimal_valid_target_values()
         valid_item = Attributes.Strength
         target_values[valid_item.name] = valid_item.value.rating_bounds.min
@@ -190,7 +194,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
         ).min
         self.assert_is_valid_target_values_dict(target_values)
 
-    def test_is_valid_target_values_dict_with_invalid_keys_expect_false(self):
+    def test_is_valid_target_values_dict_with_invalid_keys_expect_false(self) -> None:
         valid_value = 2
         for invalid_key in [
             "Str",
@@ -211,14 +215,14 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
 
     def test_is_valid_target_values_dict_with_tier_only_dict_expect_false_for_non_integer_or_out_of_bounds_values(
         self,
-    ):
+    ) -> None:
         self.run_invalid_values_test(
             valid_key=Tier.full_name, value_bounds=Tier.rating_bounds
         )
 
     def test_is_valid_target_values_dict_with_attributes_expect_false_for_non_integer_or_out_of_bounds_values(
         self,
-    ):
+    ) -> None:
         self.run_invalid_values_test(
             valid_key=Attributes.Strength.name,
             value_bounds=Attributes.Strength.value.rating_bounds,
@@ -226,7 +230,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
 
     def test_is_valid_target_values_dict_with_skills_expect_false_for_non_integer_or_out_of_bounds_values(
         self,
-    ):
+    ) -> None:
         self.run_invalid_values_test(
             valid_key=Skills.BallisticSkill.name,
             value_bounds=Skills.BallisticSkill.value.total_rating_bounds,
@@ -234,7 +238,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
 
     def test_is_valid_target_values_dict_with_traits_expect_False_for_non_integer_or_out_of_bounds_values(
         self,
-    ):
+    ) -> None:
         self.run_invalid_values_test(
             valid_key=Traits.MaxWounds.name,
             value_bounds=Traits.MaxWounds.value.get_rating_bounds(related_tier=1),

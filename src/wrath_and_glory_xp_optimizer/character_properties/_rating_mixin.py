@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import ClassVar, Any
+from typing import Any
+from typing import ClassVar
 
 from wrath_and_glory_xp_optimizer.character_properties.int_bounds import IntBounds
 

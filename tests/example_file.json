@@ -1,12 +1,10 @@
 {
-  "Tier": 2,
-  "Willpower": 5,
-  "Athletics": 3,
-  "Awareness": 2,
-  "Cunning": 3,
-  "Deception": 6,
-  "Insight": 4,
-  "Persuasion": 6,
-  "PsychicMastery": 12,
-  "Stealth": 4
+  "Tier": 3,
+  "Agility": 5,
+  "BallisticSkill": 11,
+  "Cunning": 7,
+  "Deception": 8,
+  "Stealth": 13,
+  "Defence": 6,
+  "MaxWounds": 10
 }

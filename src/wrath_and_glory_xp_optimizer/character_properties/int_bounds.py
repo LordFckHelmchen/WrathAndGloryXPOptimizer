@@ -1,16 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, ClassVar, List, Optional, Union
-
-
-@dataclass(frozen=True)
-class RatingMixin:
-    rating_bounds: ClassVar[IntBounds]
-
-    @classmethod
-    def is_valid_rating(cls, rating: Any) -> bool:
-        return isinstance(rating, int) and rating in cls.rating_bounds
+from typing import Any
+from typing import List
+from typing import Optional
+from typing import Union
 
 
 class IntBounds:

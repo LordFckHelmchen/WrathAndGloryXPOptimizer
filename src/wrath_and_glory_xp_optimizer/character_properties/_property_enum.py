@@ -3,9 +3,9 @@ from __future__ import annotations
 from enum import Enum
 
 
-class PropertyEnum(Enum):
+class _PropertyEnum(Enum):
     @classmethod
-    def get_by_name(cls, name: str) -> PropertyEnum:
+    def get_by_name(cls, name: str) -> _PropertyEnum:
         return next(
             (
                 member

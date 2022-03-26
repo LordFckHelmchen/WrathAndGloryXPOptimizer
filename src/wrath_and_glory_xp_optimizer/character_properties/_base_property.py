@@ -2,5 +2,5 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class BaseProperty:
+class _BaseProperty:
     full_name: str

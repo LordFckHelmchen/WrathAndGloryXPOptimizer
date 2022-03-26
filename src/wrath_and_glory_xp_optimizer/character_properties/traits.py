@@ -3,15 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ._base_property import _BaseProperty
+from ._property_enum import _PropertyEnum
 from .attributes import Attributes
 from .attributes import RelatedAttributeMixin
-from .base_property import BaseProperty
 from .int_bounds import IntBounds
-from .property_enum import PropertyEnum
 
 
 @dataclass(frozen=True)
-class Trait(BaseProperty, RelatedAttributeMixin):
+class Trait(_BaseProperty, RelatedAttributeMixin):
     attribute_offset: int
     tier_modifier: int
 
@@ -38,7 +38,7 @@ class InvalidTrait(Trait):
     tier_modifier: int = 0
 
 
-class Traits(PropertyEnum):
+class Traits(_PropertyEnum):
     # full names must be unique, to avoid Enum.unique() to remove duplicates.
     Conviction = Trait(
         full_name="Conviction",

@@ -15,18 +15,15 @@ jobs:
           - { python-version: 3.9, os: ubuntu-latest, session: "pre-commit" }
           - { python-version: 3.9, os: ubuntu-latest, session: "safety" }
           - { python-version: 3.9, os: ubuntu-latest, session: "mypy" }
-          - { python-version: 3.8, os: ubuntu-latest, session: "mypy" }
-          - { python-version: 3.7, os: ubuntu-latest, session: "mypy" }
-          - { python-version: 3.6, os: ubuntu-latest, session: "mypy" }
+          - { python-version: 3.9, os: ubuntu-latest, session: "typeguard" }
+          - { python-version: 3.9, os: ubuntu-latest, session: "xdoctest" }
+          - { python-version: 3.9, os: ubuntu-latest, session: "docs-build" }
           - { python-version: 3.9, os: ubuntu-latest, session: "tests" }
+          - { python-version: 3.9, os: windows-latest, session: "tests" }
+          - { python-version: 3.9, os: macos-latest, session: "tests" }
           - { python-version: 3.8, os: ubuntu-latest, session: "tests" }
           - { python-version: 3.7, os: ubuntu-latest, session: "tests" }
           - { python-version: 3.6, os: ubuntu-latest, session: "tests" }
-          - { python-version: 3.9, os: windows-latest, session: "tests" }
-          - { python-version: 3.9, os: macos-latest, session: "tests" }
-          - { python-version: 3.9, os: ubuntu-latest, session: "typeguard" }
-          - { python-version: 3.9, os: ubuntu-latest, session: "xdoctest" }
-          - { python-version: 3.8, os: ubuntu-latest, session: "docs-build" }
 
     env:
       NOXSESSION: ${{ matrix.session }}
@@ -49,11 +46,6 @@ jobs:
         run: |
           pip install --constraint=.github/workflows/constraints.txt poetry
           poetry --version
-
-      - name: Install Nox
-        run: |
-          pip install --constraint=.github/workflows/constraints.txt nox nox-poetry
-          nox --version
 
       - name: Compute pre-commit cache key
         if: matrix.session == 'pre-commit'
@@ -81,7 +73,7 @@ jobs:
 
       - name: Run Nox
         run: |
-          nox --force-color --python=${{ matrix.python-version }}
+          poetry run nox --force-color --python=${{ matrix.python-version }}
 
       - name: Upload coverage data
         if: always() && matrix.session == 'tests'
@@ -119,11 +111,6 @@ jobs:
           pip install --constraint=.github/workflows/constraints.txt poetry
           poetry --version
 
-      - name: Install Nox
-        run: |
-          pip install --constraint=.github/workflows/constraints.txt nox nox-poetry
-          nox --version
-
       - name: Download coverage data
         uses: actions/download-artifact@v2.0.9
         with:
@@ -131,11 +118,11 @@ jobs:
 
       - name: Combine coverage data and display human readable report
         run: |
-          nox --force-color --session=coverage
+          poetry run nox --force-color --session=coverage
 
       - name: Create coverage report
         run: |
-          nox --force-color --session=coverage -- xml
+          poetry run nox --force-color --session=coverage -- xml
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v1.3.2

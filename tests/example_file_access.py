@@ -6,11 +6,12 @@ from typing import Callable
 from typing import Dict
 from typing import TextIO
 
+from wrath_and_glory_xp_optimizer.character_properties.rating_dict import RatingDict
+
 EXAMPLE_FILE = Path("tests/example_file.json")
 EXPECTED_RESULTS_SUFFIX = "_expected_results"
 EXPECTED_RESULTS_EXTENSIONS = ["md", "json"]
 
-TargetValuesDict = Dict[str, int]
 ExampleDataDict = Dict[str, str]
 
 
@@ -22,8 +23,7 @@ class FileAccessMode(Enum):
 def access_expected_result_files(
     access_function: Callable[[TextIO], str], mode: FileAccessMode = FileAccessMode.READ
 ) -> ExampleDataDict:
-    """
-    Applies a function to the expected results files.
+    """Apply a function to the expected results files.
 
     Parameters
     ----------
@@ -48,28 +48,26 @@ def access_expected_result_files(
     return return_values
 
 
-def load_target_values() -> TargetValuesDict:
-    """
-    Loads the target values from the example file.
+def load_target_values() -> RatingDict:
+    """Load the target values from the example file.
 
     Returns
     -------
     target_values
     """
     with open(EXAMPLE_FILE) as file:
-        target_values: TargetValuesDict = json.load(file)
+        target_values: RatingDict = json.load(file)
     return target_values
 
 
 @dataclass
 class ExampleDataContainer:
-    target_values: TargetValuesDict
+    target_values: RatingDict
     expected_results: ExampleDataDict
 
 
 def get_example_data() -> ExampleDataContainer:
-    """
-    Loads the data from the example file & the according expected results.
+    """Load the data from the example file & the according expected results.
 
     Returns
     -------
@@ -87,8 +85,9 @@ def get_example_data() -> ExampleDataContainer:
 
 
 def create_expected_results() -> None:  # pragma: nocover
-    """
-    This function creates the expected-results files for the example file. Useful in case of updates of the format.
+    """Create the expected-results files for the example file.
+
+    Useful in case of updates of the format.
     """
     from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer
 

@@ -16,7 +16,7 @@ class Trait(_BaseProperty, RelatedAttributeMixin):
     tier_modifier: int
 
     def get_rating_bounds(self, related_tier: int) -> IntBounds:
-        return (
+        return (  # type: ignore  # Wrong type Any derived
             self.related_attribute.value.rating_bounds
             + self.get_total_attribute_offset(related_tier)
         )

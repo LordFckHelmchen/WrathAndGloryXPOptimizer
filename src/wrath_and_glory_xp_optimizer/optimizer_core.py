@@ -1,5 +1,6 @@
 import json
 from contextlib import contextmanager
+from typing import Any
 from typing import ContextManager
 from typing import Dict
 from typing import List
@@ -9,28 +10,26 @@ from typing import Type
 from typing import Union
 
 import numpy as np
-from gekko import GEKKO
-from gekko.gk_operators import GK_Intermediate
-from gekko.gk_variable import GKVariable
+from gekko import GEKKO  # type: ignore
+from gekko.gk_operators import GK_Intermediate  # type: ignore
+from gekko.gk_variable import GKVariable  # type: ignore
+from numpy.typing import NDArray
 
 from .character_properties.attributes import Attributes
+from .character_properties.rating_dict import RatingDict
 from .character_properties.skills import Skills
 from .character_properties.tier import Tier
 from .character_properties.traits import Traits
-from .exceptions import InvalidTargetValueException
-from .optimizer_results import (
-    AttributeSkillOptimizerResults,
-)
+from .exceptions import InvalidTargetValueError
+from .optimizer_results import AttributeSkillOptimizerResults
 from .optimizer_results import CharacterPropertyResults
 from .optimizer_results import SkillResults
 from .optimizer_results import XPCost
 
 
-@contextmanager
-def managed_gekko_solver(*args, **kwargs) -> ContextManager[GEKKO]:
-    """
-    Context manager for the GEKKO class, to automatically clean-up temp. files & folders after solving.
-    """
+@contextmanager  # type: ignore  # mypy fucks
+def managed_gekko_solver(*args, **kwargs) -> ContextManager[GEKKO]:  # type: ignore  # args & kwargs are passed to GEKKO
+    """Context manager, to automatically clean-up temp. files & folders."""
     solver = GEKKO(*args, **kwargs)
     try:
         yield solver
@@ -53,11 +52,12 @@ class AttributeSkillOptimizer:
 
     def __init__(
         self,
-        target_values: Dict[str, int],
+        target_values: RatingDict,
         is_verbose: bool = False,
         solver_options: Tuple[str, ...] = DEFAULT_SOLVER_OPTIONS,
     ):
-        """
+        """Construct an optimizer object.
+
         Parameters
         ----------
         target_values
@@ -69,14 +69,14 @@ class AttributeSkillOptimizer:
             Options passed to the Gekko class.
         """
         if Tier.full_name not in target_values:
-            target_values[Tier.full_name] = Tier.rating_bounds.min
+            target_values[Tier.full_name] = Tier.rating_bounds.min  # type: ignore  # rating limits are always valid ints
         if not self.is_valid_target_values_dict(target_values):
-            raise InvalidTargetValueException(
+            raise InvalidTargetValueError(
                 f"Invalid target value(s) found: \n{json.dumps(target_values, indent=2)}"
             )
 
         self.tier: int = target_values.pop(Tier.full_name)
-        self.target_values: Dict[str, int] = target_values
+        self.target_values: RatingDict = target_values
         self.solver_id = (
             1  # Use APOPT to find the optimal Integer solution, since this is a MINLP.
         )
@@ -84,10 +84,11 @@ class AttributeSkillOptimizer:
         self.is_verbose: bool = is_verbose
 
     @staticmethod
-    def is_valid_target_values_dict(target_values: Dict[str, int]) -> bool:
-        """
-        Checks if the given dictionary adheres to the expected format, e.g. contains the required parameters and each
-        value is within its specified bounds.
+    def is_valid_target_values_dict(target_values: Dict[Any, Any]) -> bool:
+        """Check if a dictionary adheres to the expected format.
+
+        The function checks if the dict contains the required parameters and
+        each value is within its specified bounds.
 
         Parameters
         ----------
@@ -123,11 +124,14 @@ class AttributeSkillOptimizer:
 
     def optimize_selection(self) -> AttributeSkillOptimizerResults:
         """
+        Optimize the current selection.
+
         Note
         ----
-        This was done with the help of John Hedengren from Gekko (see https://stackoverflow.com/questions/65863807)
+        This was done with the help of John Hedengren from Gekko
+        (see https://stackoverflow.com/questions/65863807).
         """
-        with managed_gekko_solver(remote=False) as solver:
+        with managed_gekko_solver(remote=False) as solver:  # type: ignore  # solver is a valid type
             # Define variables with optimized initial values.
             attribute_ratings = [
                 solver.Var(
@@ -155,7 +159,7 @@ class AttributeSkillOptimizer:
             for i, skill in enumerate(Skills):
                 if skill.name in self.target_values:
                     attribute_rating = self._get_gekko_var(
-                        skill.value.related_attribute, attribute_ratings
+                        skill.value.related_attribute, attribute_ratings  # type: ignore  # Will always be valid
                     ).value
                     skill_ratings[i].value = (
                         self.target_values[skill.name] - attribute_rating
@@ -167,19 +171,19 @@ class AttributeSkillOptimizer:
                     target_enum := Attributes.get_by_name(target)
                 ) != Attributes.INVALID:
                     solver.Equation(
-                        self._get_gekko_var(target_enum, attribute_ratings)
+                        self._get_gekko_var(target_enum, attribute_ratings)  # type: ignore  # Will always be valid
                         >= target_value
                     )
                 else:
-                    if (target_enum := Skills.get_by_name(target)) != Skills.INVALID:
+                    if (target_enum := Skills.get_by_name(target)) != Skills.INVALID:  # type: ignore
                         rating = self._get_gekko_var(target_enum, skill_ratings)
                         related_attribute = target_enum.value.related_attribute
                     else:  # Traits
-                        target_enum = Traits.get_by_name(target)
+                        target_enum = Traits.get_by_name(target)  # type: ignore
                         rating = target_enum.value.get_total_attribute_offset(self.tier)
                         related_attribute = target_enum.value.related_attribute
                     solver.Equation(
-                        rating
+                        rating  # type: ignore  # Will always be valid
                         + self._get_gekko_var(related_attribute, attribute_ratings)
                         >= target_value
                     )
@@ -200,7 +204,7 @@ class AttributeSkillOptimizer:
             solver.Equation(number_of_nonzero_skill_ratings >= max_skill_rating)
 
             # Objective (intermediates for readability).
-            k = np.array(
+            k: NDArray[GKVariable] = np.array(
                 [
                     solver.min3(attribute_rating, 3)
                     for attribute_rating in attribute_ratings
@@ -235,13 +239,13 @@ class AttributeSkillOptimizer:
         skill_ratings: List[GKVariable],
         attribute_cost: GK_Intermediate,
         skill_cost: GK_Intermediate,
-    ):
+    ) -> AttributeSkillOptimizerResults:
         all_ratings = attribute_ratings + skill_ratings
 
         skill_property_results = self._get_property_result(Skills, all_ratings)
         skill_result = SkillResults(
             rating_values={
-                skill.name: int(self._get_gekko_var(skill, skill_ratings).value[0])
+                skill.name: int(self._get_gekko_var(skill, skill_ratings).value[0])  # type: ignore  # Will always be valid
                 for skill in Skills.get_valid_members()
             },
             total_values=skill_property_results.Total,
@@ -303,21 +307,23 @@ class AttributeSkillOptimizer:
             rating = 0
             related_attribute = target_enum
         elif target_enum in Skills:
-            rating = int(self._get_gekko_var(target_enum, all_ratings).value[0])
+            rating = int(self._get_gekko_var(target_enum, all_ratings).value[0])  # type: ignore  # Will always be valid
             related_attribute = target_enum.value.related_attribute
         else:  # Traits
             rating = target_enum.value.get_total_attribute_offset(self.tier)
             related_attribute = target_enum.value.related_attribute
 
         return rating + int(
-            self._get_gekko_var(related_attribute, all_ratings).value[0]
+            self._get_gekko_var(related_attribute, all_ratings).value[0]  # type: ignore  # Will always be valid
         )
 
 
 def optimize_xp(
-    target_values: Dict[str, int], is_verbose: bool = False
+    target_values: RatingDict, is_verbose: bool = False
 ) -> AttributeSkillOptimizerResults:
     """
+    Optimize the xp for with given target values.
+
     Parameters
     ----------
     target_values

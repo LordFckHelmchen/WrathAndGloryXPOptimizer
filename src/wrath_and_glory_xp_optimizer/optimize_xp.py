@@ -1,6 +1,4 @@
-"""
-Command-line interface of the optimizer core.
-"""
+"""Command-line interface of the optimizer core."""
 import json
 from typing import Any
 from typing import TextIO
@@ -13,7 +11,7 @@ from .character_properties.int_bounds import IntBounds
 from .character_properties.skills import Skills
 from .character_properties.tier import Tier
 from .character_properties.traits import Traits
-from .exceptions import InvalidTargetValueException
+from .exceptions import InvalidTargetValueError
 from .optimizer_core import AttributeSkillOptimizer
 from .optimizer_core import optimize_xp
 
@@ -91,19 +89,22 @@ def print_target_values_text(click_context: click.Context, _: Any, value: Any) -
     is_eager=True,
 )
 def cli(file: TextIO, output_format: str, is_verbose: bool) -> None:
-    """
-    XP Optimizer for Wrath & Glory (see README.md for more details).
+    """XP Optimizer for Wrath & Glory (see README.md for more details).
 
-    Target values for attributes, skills & most traits (e.g. conviction, max_value. wounds, ...) can be given and the
-    function will try to optimize the spent XP, e.g. optimally increase the ratings for attributes & skills with a
-    minimum amount of xp.
+    Target values for attributes, skills & most traits
+    (e.g. conviction, max_value. wounds, ...) can be given and the function
+    will try to optimize the spent XP, e.g. optimally increase the ratings for
+    attributes & skills with a minimum amount of xp.
 
-    The function takes an existing FILE in JSON-format with the name-value pairs for the target values. FILE must
-    contain the "Tier" value.
+    The function takes an existing FILE in JSON-format with the name-value
+    pairs for the target values. FILE must contain the "Tier" value.
     """
     if is_verbose:
         click.echo(
-            f"optimizer-xp(file='{file.name}', output_format='{output_format}', is_verbose={is_verbose})\n"
+            f"optimizer-xp("
+            f"file='{file.name}', "
+            f"output_format='{output_format}', "
+            f"is_verbose={is_verbose})\n"
         )
 
     try:
@@ -113,8 +114,8 @@ def cli(file: TextIO, output_format: str, is_verbose: bool) -> None:
             if output_format == "json"
             else optimizer_result.as_markdown()
         )
-    except InvalidTargetValueException as error:
-        raise click.ClickException(str(error))
+    except InvalidTargetValueError as error:
+        raise click.ClickException(str(error)) from error
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -32,7 +32,7 @@ class IntBounds:
         self._values: List[Optional[int]] = [min_value, max_value]
         self.sort()
 
-    def __add__(self, other: Union[int, IntBounds]) -> IntBounds:
+    def __add__(self, other: Union[None, int, IntBounds]) -> IntBounds:
         if other is None:
             return IntBounds(None, None)
 
@@ -41,7 +41,8 @@ class IntBounds:
 
         if not isinstance(other, IntBounds):
             raise TypeError(
-                f"unsupported operand type(s) for +: '{type(self).__name__}' and '{type(other).__name__}'"
+                f"unsupported operand type(s) for +: '{type(self).__name__}' "
+                f"and '{type(other).__name__}'"
             )
 
         values = []
@@ -57,7 +58,7 @@ class IntBounds:
     def __contains__(self, item: int) -> bool:
         return item in self.as_range()
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[Optional[int]]:
         return self._values.__iter__()
 
     def __str__(self) -> str:
@@ -75,7 +76,7 @@ class IntBounds:
 
     def as_range(self) -> range:
         if self.are_valid():
-            return range(self.min, self.max + 1)
+            return range(self.min, self.max + 1)  # type: ignore  # valid int
         return range(0, 0)
 
     def are_valid(self) -> bool:

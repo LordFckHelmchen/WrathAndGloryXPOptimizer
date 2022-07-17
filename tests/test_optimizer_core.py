@@ -1,13 +1,15 @@
 import unittest
 from dataclasses import dataclass
+from typing import Any
 from typing import Dict
 
 from wrath_and_glory_xp_optimizer.character_properties.attributes import Attributes
 from wrath_and_glory_xp_optimizer.character_properties.int_bounds import IntBounds
+from wrath_and_glory_xp_optimizer.character_properties.rating_dict import RatingDict
 from wrath_and_glory_xp_optimizer.character_properties.skills import Skills
 from wrath_and_glory_xp_optimizer.character_properties.tier import Tier
 from wrath_and_glory_xp_optimizer.character_properties.traits import Traits
-from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueException
+from wrath_and_glory_xp_optimizer.exceptions import InvalidTargetValueError
 from wrath_and_glory_xp_optimizer.optimizer_core import AttributeSkillOptimizer
 from wrath_and_glory_xp_optimizer.optimizer_core import managed_gekko_solver
 from wrath_and_glory_xp_optimizer.optimizer_results import (
@@ -18,14 +20,14 @@ from wrath_and_glory_xp_optimizer.optimizer_results import XPCost
 
 @dataclass
 class IntendedSelection:
-    target_values: Dict[str, int]
+    target_values: RatingDict
     expected_xp_cost: XPCost
 
 
 class TestAttributeSkillOptimizer(unittest.TestCase):
     @staticmethod
-    def get_minimal_valid_target_values() -> Dict[str, int]:
-        return {Tier.full_name: Tier.rating_bounds.min}
+    def get_minimal_valid_target_values() -> RatingDict:
+        return {Tier.full_name: Tier.rating_bounds.min}  # type: ignore  # rating limits are always valid ints
 
     def run_positive_tests_on_optimized_selection(
         self, selection: IntendedSelection
@@ -45,23 +47,25 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
 
         return result
 
-    def assert_is_valid_target_values_dict(self, target_values: Dict) -> None:
+    def assert_is_valid_target_values_dict(self, target_values: RatingDict) -> None:
         self.assertTrue(
             AttributeSkillOptimizer.is_valid_target_values_dict(target_values),
             f"Valid target values dict was not detected: {target_values}",
         )
 
-    def assert_is_invalid_target_values_dict(self, target_values: Dict) -> None:
+    def assert_is_invalid_target_values_dict(
+        self, target_values: Dict[Any, Any]
+    ) -> None:
         self.assertFalse(
             AttributeSkillOptimizer.is_valid_target_values_dict(target_values),
             f"Expected target values dict to be invalid: {target_values}",
         )
 
     def run_invalid_values_test(self, valid_key: str, value_bounds: IntBounds) -> None:
-        for invalid_value in ["1", 1.0, value_bounds.min - 1, value_bounds.max + 1]:
+        for invalid_value in ["1", 1.0, value_bounds.min - 1, value_bounds.max + 1]:  # type: ignore  # rating limits are always valid ints
             with self.subTest(i=f"{valid_key}: {invalid_value}"):
                 target_values = self.get_minimal_valid_target_values()
-                target_values[valid_key] = invalid_value
+                target_values[valid_key] = invalid_value  # type: ignore  # invalid type is the idea of this function
                 self.assert_is_invalid_target_values_dict(target_values)
 
     def test_optimize_selection_expect_no_missed_targets_and_expected_xp_cost(
@@ -111,7 +115,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
     def test_optimize_selection_with_no_target_values_expect_tier_1_cost_0_attributes_at_1_and_skills_at_0(
         self,
     ) -> None:
-        target_values = dict()
+        target_values: RatingDict = {}
         initial_attribute_total = 1
         initial_skill_rating = 0
         expected_attribute_totals = {
@@ -150,20 +154,20 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
             Attributes.Agility.name: Attributes.Agility.value.rating_bounds.max,
             "Luck": 8,
         }
-        with self.assertRaises(InvalidTargetValueException):
-            AttributeSkillOptimizer(invalid_target_values)
+        with self.assertRaises(InvalidTargetValueError):
+            AttributeSkillOptimizer(invalid_target_values)  # type: ignore  # rating limits are always valid ints
 
     def test_init_with_missing_tier_expect_tier_set_to_minimum(self) -> None:
         optimizer = AttributeSkillOptimizer(
             {
-                Attributes.Fellowship.name: Attributes.Fellowship.value.rating_bounds.min,
-                Skills.BallisticSkill.name: Skills.BallisticSkill.value.total_rating_bounds.max,
+                Attributes.Fellowship.name: Attributes.Fellowship.value.rating_bounds.min,  # type: ignore  # rating limits are always valid ints
+                Skills.BallisticSkill.name: Skills.BallisticSkill.value.total_rating_bounds.max,  # type: ignore  # rating limits are always valid ints
             }
         )
         self.assertEqual(Tier.rating_bounds.min, optimizer.tier)
 
     def test_get_gekko_var_expect_StopIteration_for_missing_property(self) -> None:
-        with managed_gekko_solver(remote=False) as solver:
+        with managed_gekko_solver(remote=False) as solver:  # type: ignore  # solver is a valid type
             # Define variables with optimized initial values.
             gekko_variables = [
                 solver.Var(name="test_var_1"),
@@ -184,12 +188,12 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
 
     def test_is_valid_target_values_dict_with_valid_keys_expect_true(self) -> None:
         target_values = self.get_minimal_valid_target_values()
-        valid_item = Attributes.Strength
-        target_values[valid_item.name] = valid_item.value.rating_bounds.min
-        valid_item = Skills.BallisticSkill
-        target_values[valid_item.name] = valid_item.value.total_rating_bounds.min
-        valid_item = Traits.MaxShock
-        target_values[valid_item.name] = valid_item.value.get_rating_bounds(
+        valid_attribute = Attributes.Strength
+        target_values[valid_attribute.name] = valid_attribute.value.rating_bounds.min
+        valid_skill = Skills.BallisticSkill
+        target_values[valid_skill.name] = valid_skill.value.total_rating_bounds.min
+        valid_trait = Traits.MaxShock
+        target_values[valid_trait.name] = valid_trait.value.get_rating_bounds(
             related_tier=1
         ).min
         self.assert_is_valid_target_values_dict(target_values)
@@ -208,7 +212,7 @@ class TestAttributeSkillOptimizer(unittest.TestCase):
         ]:
             with self.subTest(i=invalid_key):
                 target_values = {
-                    **self.get_minimal_valid_target_values(),
+                    **self.get_minimal_valid_target_values(),  # type: ignore  # I don't have any clue what mypy's problem is
                     invalid_key: valid_value,
                 }
                 self.assert_is_invalid_target_values_dict(target_values)

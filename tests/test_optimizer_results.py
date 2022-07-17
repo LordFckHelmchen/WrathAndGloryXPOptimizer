@@ -48,7 +48,7 @@ class TestPropertyResults(unittest.TestCase):
                 # Remove trailing whitespaces & newlines.
                 self.assertEqual(
                     example_data.expected_results[extension].rstrip(),
-                    formatter(result).rstrip(),
+                    formatter(result).rstrip(),  # type: ignore  # untyped call from lambda is valid
                 )
 
     def test_as_markdown_with_totals_below_equal_and_above_targets_expect_missed_only_for_below_target_values(

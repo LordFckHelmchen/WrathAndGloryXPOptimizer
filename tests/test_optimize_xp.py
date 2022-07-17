@@ -39,7 +39,7 @@ class TestOptimizeXpCLI(unittest.TestCase):
 
         with cli_runner.isolated_filesystem():
             with open(invalid_example_file_name, "w") as invalid_example_file:
-                invalid_tier = Tier.rating_bounds.max + 1  # type: ignore  # max. tier is always int
+                invalid_tier = Tier.rating_bounds.max + 1  # type: ignore
                 json.dump({Tier.full_name: invalid_tier}, invalid_example_file)
             result = cli_runner.invoke(cli, [invalid_example_file_name])
 
@@ -66,7 +66,7 @@ class TestOptimizeXpCLI(unittest.TestCase):
                     result.output.rstrip(),
                 )
 
-    def test_verbose_flag_expect_valid_exit_code_and_longer_output_than_normal_execution(
+    def test_verbose_flag_expect_valid_exit_code_and_longer_output(
         self,
     ) -> None:
         normal_result = self.run_with_example_file()

@@ -47,4 +47,4 @@ class Attributes(_PropertyEnum):
                 (member for member in cls if member.value.short_name == name),
                 cls.INVALID,
             )
-        return member
+        return member  # type: ignore  # base class detected instead of derived class

@@ -1,6 +1,6 @@
-class WrathAndGloryOptimizerException(Exception):
+class WrathAndGloryOptimizerError(Exception):
     pass
 
 
-class InvalidTargetValueException(WrathAndGloryOptimizerException):
+class InvalidTargetValueError(WrathAndGloryOptimizerError):
     pass

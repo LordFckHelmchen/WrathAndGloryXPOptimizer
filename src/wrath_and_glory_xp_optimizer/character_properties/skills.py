@@ -18,7 +18,9 @@ class Skill(_BaseProperty, _RatingMixin, RelatedAttributeMixin):
 
     @property
     def total_rating_bounds(self) -> IntBounds:
-        return self.rating_bounds + self.related_attribute.value.rating_bounds
+        return (  # type: ignore  # Doesn't return 'Any'
+            self.rating_bounds + self.related_attribute.value.rating_bounds
+        )
 
     def is_valid_total_rating(self, rating: Any) -> bool:
         return isinstance(rating, int) and rating in self.total_rating_bounds

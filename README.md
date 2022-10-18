@@ -101,7 +101,7 @@ Total      | 20
 If you prefer json instead of markdown, use the `--return_json` flag:
 
 ```Bash
-python xpOptimizer.py --tier 1 --Strength 3 --MaxWounds 5 --return_json
+python xpOptimizer.py --Tier 1 --Strength 3 --MaxWounds 5 --return_json
 ```
 
 which will create:

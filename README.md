@@ -36,7 +36,7 @@ The optimizer takes the tree-of-learning rule into account, but assigns the skil
 For few target properties it is best to use the command-line arguments, e.g. if you want to optimize your *tier* 1 character with *Strength* 3 and *Max Wounds* 5, type:
 
 ```Bash
-python xpOptimizer.py --tier 1 --Strength 3 --MaxWounds 5
+python xpOptimizer.py --Tier 1 --Strength 3 --MaxWounds 5
 ```
 
 which will output the following markdown table:

@@ -16,11 +16,8 @@ jobs:
           - { python-version: 3.9, os: ubuntu-latest, session: "safety" }
           - { python-version: 3.9, os: ubuntu-latest, session: "mypy" }
           - { python-version: 3.9, os: ubuntu-latest, session: "unittests" }
-          - { python-version: 3.10, os: windows-latest, session: "unittests" }
-          - { python-version: 3.9, os: windows-latest, session: "unittests" }
+          - { python-version: 3.8, os: macos-latest, session: "unittests" }
           - { python-version: 3.8, os: windows-latest, session: "unittests" }
-          - { python-version: 3.10, os: macos-latest, session: "unittests" }
-          - { python-version: 3.9, os: macos-latest, session: "unittests" }
           - { python-version: 3.8, os: ubuntu-latest, session: "unittests" }
 
     env:
@@ -44,6 +41,7 @@ jobs:
         run: |
           pip install --constraint=.github/workflows/constraints.txt poetry
           poetry --version
+          poetry install
 
       - name: Compute pre-commit cache key
         if: matrix.session == 'pre-commit'
@@ -108,6 +106,7 @@ jobs:
         run: |
           pip install --constraint=.github/workflows/constraints.txt poetry
           poetry --version
+          poetry install
 
       - name: Download coverage data
         uses: actions/download-artifact@v2.0.9

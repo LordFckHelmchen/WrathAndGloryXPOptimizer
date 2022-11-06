@@ -268,11 +268,9 @@ class AttributeSkillOptimizer:
         attribute_or_skill: Union[Attributes, Skills], ratings: List[GKVariable]
     ) -> Optional[GKVariable]:
         return next(
-            (
-                rating
-                for rating in ratings
-                if rating.name == f"int_{attribute_or_skill.name.lower()}"
-            )
+            rating
+            for rating in ratings
+            if rating.name == f"int_{attribute_or_skill.name.lower()}"
         )
 
     def _get_property_result(

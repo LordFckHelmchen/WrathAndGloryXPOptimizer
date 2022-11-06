@@ -69,8 +69,7 @@ class SkillResults(CharacterPropertyResults):
 
     def __iter__(self) -> Iterator[Tuple[str, Union[RatingDict, List[str]]]]:
         yield "Rating", self.Rating
-        for d in super().__iter__():
-            yield d
+        yield from super().__iter__()
 
     def as_markdown(self) -> str:
         """Create a GitHub-styled Markdown-table of the results."""

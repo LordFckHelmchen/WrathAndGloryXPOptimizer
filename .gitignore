@@ -1,7 +1,6 @@
-# IDE stuff
-.idea/
-
-# Python stuff
+# Python
+/.venv/
+**/__pycache__/
 __pycache__/
 /dist/
 
@@ -11,3 +10,6 @@ __pycache__/
 
 # Other
 /tests/char.json
+
+# IntelliJ
+/.idea/

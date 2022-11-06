@@ -2,37 +2,34 @@ from __future__ import annotations
 
 from typing import Any
 from typing import Iterator
-from typing import List
-from typing import Optional
-from typing import Union
 
 
 class IntBounds:
     @property
-    def min(self) -> Optional[int]:
+    def min(self) -> int | None:
         return self._values[0]
 
     @min.setter
-    def min(self, min_value: Optional[int]) -> None:
+    def min(self, min_value: int | None) -> None:
         self._add_new_value(min_value, 0)
 
     @property
-    def max(self) -> Optional[int]:
+    def max(self) -> int | None:
         return self._values[-1]
 
     @max.setter
-    def max(self, max_value: Optional[int]) -> None:
+    def max(self, max_value: int | None) -> None:
         self._add_new_value(max_value, 1)
 
-    def _add_new_value(self, val: Optional[int], position: int) -> None:
+    def _add_new_value(self, val: int | None, position: int) -> None:
         self._values[position] = val
         self.sort()
 
-    def __init__(self, min_value: Optional[int], max_value: Optional[int]) -> None:
-        self._values: List[Optional[int]] = [min_value, max_value]
+    def __init__(self, min_value: int | None, max_value: int | None) -> None:
+        self._values: list[int | None] = [min_value, max_value]
         self.sort()
 
-    def __add__(self, other: Union[None, int, IntBounds]) -> IntBounds:
+    def __add__(self, other: None | int | IntBounds) -> IntBounds:
         if other is None:
             return IntBounds(None, None)
 
@@ -58,7 +55,7 @@ class IntBounds:
     def __contains__(self, item: int) -> bool:
         return item in self.as_range()
 
-    def __iter__(self) -> Iterator[Optional[int]]:
+    def __iter__(self) -> Iterator[int | None]:
         return self._values.__iter__()
 
     def __str__(self) -> str:
